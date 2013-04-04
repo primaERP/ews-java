@@ -26,6 +26,13 @@ class GetUserSettingsRequest extends AutodiscoverRequest {
 			 "/Autodiscover/GetUserSettings";
 	private List<String> smtpAddresses;
 	private List<UserSettingName> settings;
+	
+	
+    // Expect this request to return the partner token.
+    
+    private boolean expectPartnerToken = false;
+	private String partnerTokenReference;
+	private String partnerToken;
 
 	/**
 	 * Initializes a new instance of the <see cref="GetUserSettingsRequest"/>
@@ -35,11 +42,35 @@ class GetUserSettingsRequest extends AutodiscoverRequest {
 	 *            the service
 	 * @param url
 	 *            the url
+	 * @throws ServiceValidationException 
 	 */
-	protected GetUserSettingsRequest(AutodiscoverService service, URI url) {
-		super(service, url);
+	protected GetUserSettingsRequest(AutodiscoverService service, URI url) throws ServiceValidationException {
+		this(service, url, false);
 	}
 
+	/**
+	 * Initializes a new instance of the <see cref="GetUserSettingsRequest"/>
+	 * class.
+	 * 
+	 * @param service
+	 *            Autodiscover service associated with this request
+	 * @param url
+	 *            URL of Autodiscover service.
+	 * @param   expectPartnerToken    
+	 * @throws ServiceValidationException 
+	 * 			
+	 */
+    protected GetUserSettingsRequest(AutodiscoverService service, URI url, boolean expectPartnerToken) throws ServiceValidationException
+        
+	{
+		super(service, url);
+		this.expectPartnerToken = expectPartnerToken;
+
+		// make an explicit https check.
+		if (expectPartnerToken && !url.getScheme().equalsIgnoreCase("https")) {
+			throw new ServiceValidationException(Strings.HttpsIsRequired);
+		}
+	}
 	/**
 	 * Validates the request.
 	 * 
@@ -163,7 +194,24 @@ class GetUserSettingsRequest extends AutodiscoverRequest {
 				EwsUtilities.AutodiscoverSoapNamespacePrefix,
 				EwsUtilities.AutodiscoverSoapNamespace);
 	}
-
+/**
+ * @throws XMLStreamException 
+ * @throws  
+ * 
+ */
+	@Override
+	protected void writeExtraCustomSoapHeadersToXml(EwsServiceXmlWriter writer) throws XMLStreamException,
+	ServiceXmlSerializationException
+ {
+		if (this.expectPartnerToken) {
+			writer
+					.writeElementValue(XmlNamespace.Autodiscover,
+							XmlElementNames.BinarySecret, Convert
+									.ToBase64String(ExchangeServiceBase
+											.getSessionKey()));
+		}
+	}
+	 
 	/**
 	 * Writes request to XML.
 	 * 
@@ -206,9 +254,31 @@ class GetUserSettingsRequest extends AutodiscoverRequest {
 
 		writer.writeEndElement(); // Request
 	}
+	
+    /** Read the partner token soap header.
+     * @param reader ewsxmlreader
+     * @throws Exception 
+     */
+	@Override
+    protected void readSoapHeader(EwsXmlReader reader) throws Exception
+    {
+		super.readSoapHeader(reader);
+
+		if (this.expectPartnerToken) {
+			if (reader.isStartElement(XmlNamespace.Autodiscover,
+					XmlElementNames.PartnerToken)) {
+				this.partnerToken = reader.readInnerXml();
+			}
+
+			if (reader.isStartElement(XmlNamespace.Autodiscover,
+					XmlElementNames.PartnerTokenReference)) {
+				partnerTokenReference = reader.readInnerXml();
+			}
+		}
+    }
 
 	/**
-	 * Gets  the SMTP addresses.
+	 * Gets the SMTP addresses.
 	 * 
 	 * @return the smtp addresses
 	 */
@@ -242,8 +312,30 @@ class GetUserSettingsRequest extends AutodiscoverRequest {
 	 *            the new settings
 	 */
 	protected void setSettings(List<UserSettingName> value) {
-		this.settings=value;
-		
+		this.settings = value;
+
 	}
 
+	/**
+	 * Gets the partner token.
+	 */
+	protected String getPartnerToken() {
+		return partnerToken;
+	}
+
+	private void setPartnerToken(String value) {
+		partnerToken = value;
+	}
+
+	/**<summary>
+	 * Gets the partner token reference.
+	 */
+	protected String getPartnerTokenReference() {
+		return partnerTokenReference;
+
+	}
+
+	private void setPartnerTokenReference(String tokenReference) {
+		partnerTokenReference = tokenReference;
+	}
 }

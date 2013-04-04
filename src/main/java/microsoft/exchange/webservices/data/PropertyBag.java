@@ -521,7 +521,7 @@ class PropertyBag implements IComplexPropertyChanged,
 			// prevents
 			// properties to be set if they don't have the CanSet flag, but it
 			// doesn't hurt...
-			if (propertyDefinition.hasFlag(PropertyDefinitionFlags.CanSet)) {
+			if (propertyDefinition.hasFlag(PropertyDefinitionFlags.CanSet, writer.getService().getRequestedServerVersion())) {
 				if (this.contains(propertyDefinition)) {
 					propertyDefinition.writePropertyValueToXml(writer, this,
 							false /* isUpdateOperation */);
@@ -791,7 +791,8 @@ class PropertyBag implements IComplexPropertyChanged,
 			// If the owner is new and if the property cannot be set, throw.
 			if (this.getOwner().isNew()
 					&& !propertyDefinition
-							.hasFlag(PropertyDefinitionFlags.CanSet)) {
+							.hasFlag(PropertyDefinitionFlags.CanSet,this.getOwner()
+									.getService().getRequestedServerVersion())) {
 				throw new ServiceObjectPropertyException(
 						Strings.PropertyIsReadOnly, propertyDefinition);
 			}

@@ -115,7 +115,7 @@ public final class AttendeeAvailability extends ServiceResponse {
 	 * @return the calendar events
 	 */
 	public Collection<CalendarEvent> getCalendarEvents() {
-		return calendarEvents;
+		return this.calendarEvents;
 	}
 
 	/**

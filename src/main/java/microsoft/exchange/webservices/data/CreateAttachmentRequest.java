@@ -7,6 +7,8 @@
 package microsoft.exchange.webservices.data;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Represents a CreateAttachment request.
@@ -106,6 +108,35 @@ final class CreateAttachmentRequest extends
 	@Override
 	protected ExchangeVersion getMinimumRequiredServerVersion() {
 		return ExchangeVersion.Exchange2007_SP1;
+	}
+	
+	/**
+	 * 
+	 * Gets a value indicating whether the TimeZoneContext SOAP header should be
+	 * emitted.
+	 */
+	protected boolean emitTimeZoneHeader() throws ServiceLocalException ,Exception{
+		{
+
+			ListIterator<Attachment> items = this.getAttachments()
+					.listIterator();
+
+			while (items.hasNext())
+
+			{
+
+				ItemAttachment itemAttachment = (ItemAttachment) items.next();
+
+				if ((itemAttachment.getItem() != null)
+						&& itemAttachment
+								.getItem()
+								.getIsTimeZoneHeaderRequired(false /* isUpdateOperation */)) {
+					return true;
+				}
+			}
+
+			return false;
+		}
 	}
 
 	/**

@@ -67,6 +67,8 @@ class EwsXmlReader {
 	throws XMLStreamException, Exception {
 
 		XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+		inputFactory.setProperty(XMLInputFactory.SUPPORT_DTD,false);
+		//inputFactory.setProperty(XMLInputFactory.RESOLVER, null);
 
 		return inputFactory.createXMLEventReader(stream);       
 	}

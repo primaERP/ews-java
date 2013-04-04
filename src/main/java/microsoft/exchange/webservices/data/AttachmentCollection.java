@@ -361,14 +361,48 @@ public final class AttachmentCollection extends
 	 */
 	public void validate() throws Exception {
 		// Validate all added attachments
+		boolean contactPhotoFound = false;
 		for (int attachmentIndex = 0; attachmentIndex < this.getAddedItems()
 				.size(); attachmentIndex++) {
 			Attachment attachment = this.getAddedItems().get(attachmentIndex);
 			if (attachment.isNew()) {
+
+				// At the server side, only the last attachment with
+				// IsContactPhoto is kept, all other IsContactPhoto
+				// attachments are removed. CreateAttachment will generate
+				// AttachmentId for each of such attachments (although
+				// only the last one is valid).
+				// 
+				// With E14 SP2 CreateItemWithAttachment, such request will only
+				// return 1 AttachmentId; but the client
+				// expects to see all, so let us prevent such "invalid" request
+				// in the first place.
+				// 
+				// The IsNew check is to still let CreateAttachmentRequest allow
+				// multiple IsContactPhoto attachments.
+				// 
+				if (this.owner.isNew()
+						&& this.owner.getService().getRequestedServerVersion()
+								.ordinal() >= ExchangeVersion.Exchange2010_SP2
+								.ordinal()) {
+					FileAttachment fileAttachment = (FileAttachment) attachment;
+
+					if (fileAttachment != null
+							&& fileAttachment.isContactPhoto()) {
+						if (contactPhotoFound) {
+							throw new ServiceValidationException(
+									Strings.MultipleContactPhotosInAttachment);
+						}
+
+						contactPhotoFound = true;
+					}
+				}
+
 				attachment.validate(attachmentIndex);
 			}
 		}
 	}
+				
 
 	/**
 	 * Calls the DeleteAttachment web method to delete a list of attachments.
@@ -410,7 +444,7 @@ public final class AttachmentCollection extends
 	 * @param attachments
 	 *            the attachments
 	 * @throws Exception
-	 *             the exception
+	 *             the exception 
 	 */
 	private void internalCreateAttachments(String parentItemId,
 			Iterable<Attachment> attachments) throws Exception {

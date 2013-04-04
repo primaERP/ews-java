@@ -232,23 +232,61 @@ abstract class HangingServiceRequestBase extends ServiceRequestBase {
 	private void parseResponses(Object state) {
 		UUID traceId = UUID.fromString("00000000-0000-0000-0000-000000000000");
 		HangingTraceStream tracingStream = null;
+		ByteArrayOutputStream responseCopy = null;
+		
 
 		try {
+			boolean traceEWSResponse = this.getService().isTraceEnabledFor(TraceFlags.EwsResponse);
 			InputStream responseStream = this.response.getInputStream();
 			tracingStream = new HangingTraceStream(responseStream,
 					this.getService());
+			//EWSServiceMultiResponseXmlReader. Create causes a read.
+			
+			if(traceEWSResponse){
+				responseCopy = new ByteArrayOutputStream();
+				  tracingStream.setResponseCopy(responseCopy);
+			}
+			
+			//EwsServiceMultiResponseXmlReader ewsXmlReader = EwsServiceMultiResponseXmlReader.create(tracingStream, getService());
 
 			
 
 			while (this.isConnected()) {
-				this.ewsXmlReader = EwsServiceMultiResponseXmlReader.create(
-					tracingStream, 
-					this.getService());//b'coz of java excep, first time it will wrk, 2nd time 
-				Object responseObject = this.readResponse(this.ewsXmlReader);
+				Object responseObject = null;
+				if(traceEWSResponse){
+					/*try{*/
+						EwsServiceMultiResponseXmlReader	ewsXmlReader = EwsServiceMultiResponseXmlReader.create(tracingStream, getService());
+						responseObject = this.readResponse(ewsXmlReader);
+						//this.responseHandler.handleResponseObject(responseObject);
+				/*	}catch(Exception ex){
+						this.disconnect(HangingRequestDisconnectReason.Exception, ex);
+						return;
+						
+					}
+					finally{
+						this.getService().traceXml(TraceFlags.EwsResponse,responseCopy);
+						if(responseObject!=null)
+							this.responseHandler.handleResponseObject(responseObject);
+					}*/
+					// reset the stream collector.
+					
+					responseCopy.close();
+					responseCopy = new ByteArrayOutputStream();
+					 tracingStream.setResponseCopy(responseCopy);
+					
+				}
+				else {
+					EwsServiceMultiResponseXmlReader	ewsXmlReader = EwsServiceMultiResponseXmlReader.create(tracingStream, getService());
+					responseObject = this.readResponse(ewsXmlReader);
+					this.responseHandler.handleResponseObject(responseObject);
+				}
+				
 
 				this.responseHandler.handleResponseObject(responseObject);
+				
 			}
 		}
+	
 		catch (SocketTimeoutException ex) {
 			// The connection timed out.
 			this.disconnect(HangingRequestDisconnectReason.Timeout, ex);
@@ -284,14 +322,13 @@ abstract class HangingServiceRequestBase extends ServiceRequestBase {
 			return;
 		}
 		finally {
-			ByteArrayOutputStream responseCopy;
-
-			if (tracingStream != null &&
-					this.getService().isTraceEnabledFor(TraceFlags.EwsResponse) &&
-					(responseCopy = tracingStream.GetResponseCopy()) != null) {
-				this.getService().traceXml(
-						TraceFlags.EwsResponse,
-						responseCopy);
+			 if(responseCopy != null){
+				 try{
+				 responseCopy.close();
+				 responseCopy = null;
+				 }catch(Exception ex){
+					 ex.printStackTrace();
+				 }
 			}
 		}
 	}
@@ -316,7 +353,7 @@ abstract class HangingServiceRequestBase extends ServiceRequestBase {
 	 */
 	protected void disconnect() {
 		synchronized (this) {
-			this.request.close();
+			//this.request.close();
 			this.response.close();
 			this.disconnect(HangingRequestDisconnectReason.UserInitiated, null);
 		}
@@ -332,6 +369,7 @@ abstract class HangingServiceRequestBase extends ServiceRequestBase {
 	protected void disconnect(HangingRequestDisconnectReason reason,
 			Exception exception) {
 		if (this.isConnected()) {
+			this.response.close();
 			this.internalOnDisconnect(reason, exception);
 		}
 	}
@@ -346,7 +384,7 @@ abstract class HangingServiceRequestBase extends ServiceRequestBase {
 
 			if (this.getService().isTraceEnabledFor(TraceFlags.EwsResponseHttpHeaders)) {
 				// Trace Http headers
-				this.getService().traceHttpResponseHeaders(
+				this.getService().processHttpResponseHeaders(
 						TraceFlags.EwsResponseHttpHeaders,
 						this.response);
 			}

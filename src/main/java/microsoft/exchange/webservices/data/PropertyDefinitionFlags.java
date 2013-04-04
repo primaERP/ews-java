@@ -4,14 +4,16 @@
  * 
  * Defines the PropertyDefinitionFlags.java.
  **************************************************************************/
+
 package microsoft.exchange.webservices.data;
 
-/***
- * Defines how a complex property behaves.
- * 
- * 
+import java.util.EnumSet;
+
+/**
+ * defines how a complex property behaves.
  */
-enum PropertyDefinitionFlags {
+public enum PropertyDefinitionFlags {
+	
 	/**
 	 * No specific behavior.
 	 */
@@ -48,5 +50,15 @@ enum PropertyDefinitionFlags {
 	CanFind,
 
 	/** The property must be loaded explicitly. */
-	MustBeExplicitlyLoaded
+	MustBeExplicitlyLoaded,
+	
+	/**
+	 * Only meaningful for "collection" property. With this flag, the item in the collection gets updated, 
+	 *  instead of creating and adding new items to the collection.
+	 *   Should be used together with the ReuseInstance flag.
+	 */
+	
+    UpdateCollectionItems;
+	
 }
+

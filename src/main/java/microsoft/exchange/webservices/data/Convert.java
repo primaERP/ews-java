@@ -124,4 +124,9 @@ package microsoft.exchange.webservices.data;
 	public static void main(String[] arg) throws ClassCastException {
 		System.out.println("value =" + Convert.changeType(10, double.class));
 	}
+
+	public static Object ToBase64String(byte[] sessionKey) {
+		// TODO Auto-generated method stub
+		return sessionKey.toString();
+	}
 }

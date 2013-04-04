@@ -7,6 +7,8 @@
 
 package microsoft.exchange.webservices.data;
 
+import java.util.concurrent.FutureTask;
+
 /***
  * Represents a service request that can have multiple responses.
  * 
@@ -152,6 +154,32 @@ abstract class MultiResponseServiceRequest<TResponse extends ServiceResponse>
 
 		return serviceResponses;
 	}
+	
+	
+    /** 
+    * Ends executing this async request.
+    * 
+    * @param asyncResultThe async result 
+    * @returns Service response collection.
+    */
+    @SuppressWarnings("unchecked")
+	protected ServiceResponseCollection<TResponse> endExecute(IAsyncResult asyncResult) throws Exception
+    {
+        ServiceResponseCollection<TResponse> serviceResponses = (ServiceResponseCollection<TResponse>)this.endInternalExecute(asyncResult);
+
+        if (this.errorHandlingMode == ServiceErrorHandling.ThrowOnError)
+        {
+            EwsUtilities.EwsAssert(
+                serviceResponses.getCount() == 1,
+                "MultiResponseServiceRequest.Execute",
+                "ServiceErrorHandling.ThrowOnError error handling is only valid for singleton request");
+
+             serviceResponses.getResponseAtIndex(0).throwIfNecessary();
+        }
+
+        return serviceResponses;
+    }
+
 
 	/***
 	 * Gets a value indicating how errors should be handled.

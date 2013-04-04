@@ -49,9 +49,16 @@ MultiResponseServiceRequest<ResolveNamesResponse> {
 
 	/** The search location. */
 	private ResolveNameSearchLocation searchLocation;
+	
+	/** The Contact PropertySet.   **/
+	private PropertySet contactDataPropertySet ;
 
 	/** The parent folder ids. */
 	private FolderIdWrapperList parentFolderIds = new FolderIdWrapperList();
+	
+	
+	
+	
 
 	/**
 	 * Asserts the valid.
@@ -158,11 +165,22 @@ MultiResponseServiceRequest<ResolveNamesResponse> {
 				"ResolveNameRequest.WriteAttributesToXml",
 				"The specified search location cannot " +
 		"be mapped to an EWS search scope.");
+		
+	 String propertySet = null;
+		if(this.getContactDataPropertySet() != null){
+			//((PropertyBag)PropertySet.getDefaultPropertySetDictionary( ).getMember()).tryGetValue(this.contactDataPropertySet.getBasePropertySet(),  propertySet);
+			if(PropertySet.getDefaultPropertySetMap() .getMember().containsKey( this.getContactDataPropertySet().getBasePropertySet())){
+			propertySet= PropertySet.getDefaultPropertySetMap().getMember().get(this.getContactDataPropertySet().getBasePropertySet());
+			}
+		}
 
 		if(!this.getService().getExchange2007CompatibilityMode())
 		{
 			writer.writeAttributeValue(XmlAttributeNames.
 					SearchScope, searchScope);
+		}
+		if(! ( propertySet == null)){
+			writer.writeAttributeValue(XmlAttributeNames.ContactDataShape, propertySet);
 		}
 	}
 
@@ -261,5 +279,28 @@ MultiResponseServiceRequest<ResolveNamesResponse> {
 	public FolderIdWrapperList getParentFolderIds() {
 		return this.parentFolderIds;
 	}
+	
+	 /**  
+      *Gets or sets the PropertySet for Contact Data
+      *  
+      * The PropertySet
+      */
+    public void setContactDataPropertySet(PropertySet propertySet){
+    
+        
+         this.contactDataPropertySet = propertySet; 
+    }
+    
+    /** 
+    * Gets or sets the PropertySet for Contact Data
+    * @return The PropertySet  
+    *
+    */
+    public PropertySet getContactDataPropertySet(){
+        return this.contactDataPropertySet; 
+        }
+        
+    
+	
 
 }

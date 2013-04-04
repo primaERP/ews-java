@@ -6,9 +6,11 @@
  **************************************************************************/
 package microsoft.exchange.webservices.data;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -522,7 +524,7 @@ import org.apache.commons.httpclient.HttpException;
 	 * @throws EWSHttpException
 	 *             the eWS http exception
 	 */
-	public abstract void prepareAsyncConnection() throws EWSHttpException;
+	public abstract void prepareAsyncConnection() throws EWSHttpException, UnsupportedEncodingException;
 	
 	/**
 	 * Gets the request properties.
@@ -559,6 +561,24 @@ import org.apache.commons.httpclient.HttpException;
 	 * @throws IOException
 	 *             the IO Exception
 	 */
-	public abstract int executeRequest() throws EWSHttpException, HttpException, IOException;
+	public abstract int executeRequest() throws EWSHttpException, HttpErrorException, IOException;
+
+	public IAsyncResult beginGetResponse(Object webRequestAsyncCallback,
+			WebAsyncCallStateAnchor wrappedState) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	
+
+	public ByteArrayOutputStream endGetRequestStream(
+			IAsyncResult result) {
+		// TODO Auto-generated method stub
+		return new ByteArrayOutputStream();
+	}
+	
+	
+
+ 
 	
 }

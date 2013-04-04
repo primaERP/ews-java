@@ -6,8 +6,10 @@
  **************************************************************************/
 package microsoft.exchange.webservices.data;
 
+import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -40,6 +42,28 @@ public abstract class ExchangeCredentials {
 		return new WebCredentials(userName, password, domain);
 	}
 
+	
+    /** 
+     *Return the url without wssecruity address.
+     * 
+     *@param url The url 
+     *@returns The absolute uri base. 
+     */
+    protected static String getUriWithoutWSSecurity(URI url)
+    {
+        String absoluteUri = url.toString();
+        int index = absoluteUri.indexOf("/wssecurity");
+
+        if (index == -1)
+        {
+            return absoluteUri;
+        }
+        else
+        {
+            return absoluteUri.substring(0, index);
+        }
+    }
+	
 	/***
 	 * This method is called to pre-authenticate credentials before a service
 	 * request is made.
@@ -91,6 +115,37 @@ public abstract class ExchangeCredentials {
 			String webMethodName) throws XMLStreamException {
 		// do nothing by default.
 	}
+	
+	/**  
+     * Adjusts the URL endpoint based on the credentials.
+     * 
+     * @param url The URL. 
+     * @returns Adjust URL.
+     */ 
+    protected  URI adjustUrl(URI url)throws URISyntaxException
+    {
+        return new URI(getUriWithoutWSSecurity(url));
+    }
+    
+    /** 
+     * Gets the flag indicating whether any sign action need taken.
+     */
+    protected  boolean isNeedSignature()
+    {
+         return false; 
+    }
+    
+    /**   
+     * Add the signature element to the memory stream.
+     *  
+     * @param memoryStream The memory stream.
+     */ 
+    protected  void sign(ByteArrayOutputStream memoryStream)throws Exception
+    {
+        throw new InvalidOperationException();
+    }
+    
+    
 
 	/**
 	 * * Serialize SOAP headers used for authentication schemes that rely on
@@ -106,16 +161,5 @@ public abstract class ExchangeCredentials {
 		// do nothing by default.
 	}
 
-	/**
-	 * * Adjusts the URL endpoint based on the credentials.
-	 * 
-	 * @param url
-	 *            The URL.
-	 * @return Adjust URL.
-	 * @throws URISyntaxException
-	 *             the uRI syntax exception
-	 */
-	protected URI adjustUrl(URI url) throws URISyntaxException {
-		return url;
-	}
+ 
 }

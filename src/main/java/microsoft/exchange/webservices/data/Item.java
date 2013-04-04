@@ -9,6 +9,7 @@ package microsoft.exchange.webservices.data;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.ListIterator;
 
 /**
  * Represents a generic item. Properties available on items are defined in the
@@ -243,8 +244,7 @@ public class Item extends ServiceObject {
 			FolderId parentFolderId,
 			ConflictResolutionMode conflictResolutionMode,
 			MessageDisposition messageDisposition,
-			SendInvitationsOrCancellationsMode 
-			sendInvitationsOrCancellationsMode)
+			SendInvitationsOrCancellationsMode sendInvitationsOrCancellationsMode)
 			throws ServiceResponseException, Exception {
 		this.throwIfThisIsNew();
 		this.throwIfThisIsAttachment();
@@ -252,40 +252,40 @@ public class Item extends ServiceObject {
 		Item returnedItem = null;
 
 		if (this.isDirty() && this.getPropertyBag().getIsUpdateCallNecessary()) {
-				returnedItem = this
-						.getService()
-						.updateItem(
-								this,
-								parentFolderId,
-								conflictResolutionMode,
-								messageDisposition,
-								sendInvitationsOrCancellationsMode != null ?
-										sendInvitationsOrCancellationsMode
-										: this
-												.getDefaultSendInvitationsOrCancellationsMode());
-			} 
-		if(this.hasUnprocessedAttachmentChanges()){
-				// Validation of the item and its attachments occurs in
-				// UpdateItems.
-				// If we didn't update the item we still need to validate
-				// attachments.
-				this.getAttachments().validate();
-				this.getAttachments().save();
-		
+			returnedItem = this
+					.getService()
+					.updateItem(
+							this,
+							parentFolderId,
+							conflictResolutionMode,
+							messageDisposition,
+							sendInvitationsOrCancellationsMode != null ? sendInvitationsOrCancellationsMode
+									: this
+											.getDefaultSendInvitationsOrCancellationsMode());
+		}
+		if (this.hasUnprocessedAttachmentChanges()) {
+			// Validation of the item and its attachments occurs in
+			// UpdateItems.
+			// If we didn't update the item we still need to validate
+			// attachments.
+			this.getAttachments().validate();
+			this.getAttachments().save();
+
 		}
 
 		return returnedItem;
 	}
-	
+
 	/**
-	 * Gets a value indicating whether this instance
-	 *  has unprocessed attachment collection changes.	
-	 * @throws ServiceLocalException 
+	 * Gets a value indicating whether this instance has unprocessed attachment
+	 * collection changes.
+	 * 
+	 * @throws ServiceLocalException
 	 */
-	protected boolean hasUnprocessedAttachmentChanges() 
-	throws ServiceLocalException {
-		 return this.getAttachments().hasUnprocessedChanges();
-    
+	protected boolean hasUnprocessedAttachmentChanges()
+			throws ServiceLocalException {
+		return this.getAttachments().hasUnprocessedChanges();
+
 	}
 
 	/**
@@ -401,7 +401,7 @@ public class Item extends ServiceObject {
 	 *             the exception
 	 */
 	public Item copy(FolderId destinationFolderId) throws Exception {
-		
+
 		this.throwIfThisIsNew();
 		this.throwIfThisIsAttachment();
 
@@ -505,6 +505,56 @@ public class Item extends ServiceObject {
 	protected void validate() throws Exception {
 		super.validate();
 		this.getAttachments().validate();
+	}
+
+	/**
+	 * Gets a value indicating whether a time zone SOAP header should be emitted
+	 * in a CreateItem or UpdateItem request so this item can be property saved
+	 * or updated.
+	 * 
+	 * @param isUpdateOperation
+	 *            Indicates whether the operation being petrformed is an update
+	 *            operation.
+	 * @return true if a time zone SOAP header should be emitted;
+	 *         otherwise,false
+	 */
+	protected boolean getIsTimeZoneHeaderRequired(boolean isUpdateOperation)
+			throws Exception {
+		// Starting E14SP2, attachment will be sent along with CreateItem
+		// requests.
+		// if the attachment used to require the Timezone header, CreateItem
+		// request should do so too.
+		//
+
+		if (!isUpdateOperation
+				&& (this.getService().getRequestedServerVersion().ordinal() >= ExchangeVersion.Exchange2010_SP2
+						.ordinal())) {
+
+			ListIterator<Attachment> items = this.getAttachments().getItems()
+					.listIterator();
+
+			while (items.hasNext()) {
+
+				ItemAttachment itemAttachment = (ItemAttachment) items.next();
+
+				if ((itemAttachment.getItem() != null)
+						&& itemAttachment
+								.getItem()
+								.getIsTimeZoneHeaderRequired(false /* isUpdateOperation */)) {
+					return true;
+				}
+			}
+		}
+
+		/*
+		 * for (ItemAttachment itemAttachment :
+		 * this.getAttachments().OfType<ItemAttachment>().getc) { if
+		 * ((itemAttachment.Item != null) &&
+		 * itemAttachment.Item.GetIsTimeZoneHeaderRequired(false /* //
+		 * isUpdateOperation )) { return true; } }
+		 */
+
+		return super.getIsTimeZoneHeaderRequired(isUpdateOperation);
 	}
 
 	// region Properties
@@ -838,8 +888,8 @@ public class Item extends ServiceObject {
 	 * @throws ServiceLocalException
 	 *             the service local exception
 	 */
-	public InternetMessageHeaderCollection getInternetMessageHeaders() 
-	throws ServiceLocalException {
+	public InternetMessageHeaderCollection getInternetMessageHeaders()
+			throws ServiceLocalException {
 		return (InternetMessageHeaderCollection) this.getPropertyBag()
 				.getObjectFromPropertyDefinition(
 						ItemSchema.InternetMessageHeaders);
@@ -885,7 +935,7 @@ public class Item extends ServiceObject {
 	}
 
 	/**
-	 * Gets  the date and time when the reminder is due for this item.
+	 * Gets the date and time when the reminder is due for this item.
 	 * 
 	 * @return the reminder due by
 	 * @throws ServiceLocalException
@@ -910,7 +960,7 @@ public class Item extends ServiceObject {
 	}
 
 	/**
-	 * Gets  a value indicating whether a reminder is set for this item.
+	 * Gets a value indicating whether a reminder is set for this item.
 	 * 
 	 * @return the checks if is reminder set
 	 * @throws ServiceLocalException
@@ -1000,7 +1050,7 @@ public class Item extends ServiceObject {
 	}
 
 	/**
-	 * Gets  the body of this item.
+	 * Gets the body of this item.
 	 * 
 	 * @return MessageBody
 	 * @throws ServiceLocalException
@@ -1050,7 +1100,7 @@ public class Item extends ServiceObject {
 	}
 
 	/**
-	 * Gets  the subject of this item.
+	 * Gets the subject of this item.
 	 * 
 	 * @param subject
 	 *            the new subject
@@ -1137,7 +1187,8 @@ public class Item extends ServiceObject {
 	 * @throws ServiceLocalException
 	 *             the service local exception
 	 */
-	public EnumSet<EffectiveRights> getEffectiveRights() throws ServiceLocalException {
+	public EnumSet<EffectiveRights> getEffectiveRights()
+			throws ServiceLocalException {
 		return (EnumSet<EffectiveRights>) this.getPropertyBag()
 				.getObjectFromPropertyDefinition(ItemSchema.EffectiveRights);
 	}
@@ -1227,8 +1278,7 @@ public class Item extends ServiceObject {
 	 * 
 	 * @return the default send invitations or cancellations mode
 	 */
-	protected SendInvitationsOrCancellationsMode 
-			getDefaultSendInvitationsOrCancellationsMode() {
+	protected SendInvitationsOrCancellationsMode getDefaultSendInvitationsOrCancellationsMode() {
 		return null;
 	}
 

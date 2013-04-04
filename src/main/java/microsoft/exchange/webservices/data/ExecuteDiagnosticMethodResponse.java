@@ -50,6 +50,7 @@ final class ExecuteDiagnosticMethodResponse extends ServiceResponse {
 				XmlElementNames.ReturnValue);
 
 		XMLEventReader returnValueReader = reader.getXmlReaderForNode();
+		//this.returnValue = (Document) new SafeXmlDocument();
 		{
 			this.returnValue = retriveDocument(returnValueReader);
 		}

@@ -131,6 +131,8 @@ public class ItemSchema extends ServiceObjectSchema {
 
 		/** The Unique body. */
 		String UniqueBody = "item:UniqueBody";
+		
+		String StoreEntryId = "item:StoreEntryId";
 	}
 
 	/***
@@ -234,18 +236,7 @@ public class ItemSchema extends ServiceObjectSchema {
 	/***
 	 * Defines the Attachments property.
 	 */
-	public static final PropertyDefinition Attachments = 
-		new ComplexPropertyDefinition<AttachmentCollection>(
-				AttachmentCollection.class,
-			XmlElementNames.Attachments, FieldUris.Attachments, EnumSet
-					.of(PropertyDefinitionFlags.AutoInstantiateOnRead),
-			ExchangeVersion.Exchange2007_SP1,
-			new ICreateComplexPropertyDelegate<AttachmentCollection>() {
-				@Override
-				public AttachmentCollection createComplexProperty() {
-					return new AttachmentCollection();
-				}
-			});
+	public static final PropertyDefinition Attachments = new AttachmentsPropertyDefinition();
 
 	/***
 	 * Defines the DateTimeReceived property.
@@ -555,6 +546,20 @@ public class ItemSchema extends ServiceObjectSchema {
 					return new UniqueBody();
 				}
 			});
+	
+	/**
+	 * Defines the StoreEntryId property.
+	 */
+	
+	 public static final PropertyDefinition StoreEntryId =
+         new ByteArrayPropertyDefinition(
+             XmlElementNames.StoreEntryId,
+             FieldUris.StoreEntryId,
+             EnumSet
+				.of(PropertyDefinitionFlags.CanFind),
+             ExchangeVersion.Exchange2010_SP2);
+
+
 
 	/** The Constant Instance. */
 	protected static final ItemSchema Instance = new ItemSchema();
@@ -615,6 +620,7 @@ public class ItemSchema extends ServiceObjectSchema {
 		this.registerProperty(WebClientEditFormQueryString);
 		this.registerProperty(ConversationId);
 		this.registerProperty(UniqueBody);
+		this.registerProperty(StoreEntryId);
 
 	}
 

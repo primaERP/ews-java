@@ -46,6 +46,10 @@ class EwsServiceXmlWriter implements IDisposable {
 
 	/** The Buffer size. */
 	private static final int BufferSize = 4096;
+	
+	/**The  requireWSSecurityUtilityNamespace **/
+	  
+	protected boolean requireWSSecurityUtilityNamespace;
 
 	/**
 	 * * Initializes a new instance.
@@ -555,6 +559,25 @@ class EwsServiceXmlWriter implements IDisposable {
 		return service;
 	}
 
+	/***
+	 *  Gets a value indicating whether the SOAP message need WSSecurity Utility namespace.
+	 * 
+	 *  
+	 */
+	public boolean isRequireWSSecurityUtilityNamespace() {
+		return requireWSSecurityUtilityNamespace;
+	}
+
+	/***
+	 *   Sets a value indicating whether the SOAP message need WSSecurity Utility namespace.
+	 * 
+	 * @param requireWSSecurityUtilityNamespace
+	 *            
+	 */
+	public void setRequireWSSecurityUtilityNamespace(boolean requireWSSecurityUtilityNamespace) {
+		this.requireWSSecurityUtilityNamespace = requireWSSecurityUtilityNamespace;
+	}
+	
 	/***
 	 * Gets a value indicating whether the time zone SOAP header was emitted
 	 * through this writer.

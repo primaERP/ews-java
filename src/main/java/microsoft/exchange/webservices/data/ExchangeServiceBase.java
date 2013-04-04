@@ -10,19 +10,29 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
+import java.net.CookieStore;
+import java.net.HttpCookie;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Dictionary;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.TimeZone;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -31,6 +41,7 @@ import java.util.regex.Pattern;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 
@@ -51,6 +62,9 @@ public abstract class ExchangeServiceBase {
 
 	/** The use default credentials. */
 	private boolean useDefaultCredentials;
+	
+	/** The binary secret.*/
+    private static byte[] binarySecret;
 
 	/** The timeout. */
 	private int timeout = 100000;
@@ -75,18 +89,24 @@ public abstract class ExchangeServiceBase {
 
 	/** The requested server version. */
 	private ExchangeVersion requestedServerVersion = 
-		ExchangeVersion.Exchange2010_SP1;
+		ExchangeVersion.Exchange2010_SP2;
 
 	/** The server info. */
 	private ExchangeServerInfo serverInfo;
 
 	private Map<String, String> httpHeaders = new HashMap<String, String>();
+	
+	private Map<String, String> httpResponseHeaders = new HashMap<String, String>();
 
 	private TimeZone timeZone;
 
 	private WebProxy webProxy;
 	
 	private HttpConnectionManager simpleHttpConnectionManager = new MultiThreadedHttpConnectionManager(); 
+	
+	HttpClientWebRequest request = null;
+	
+	private Cookie[] cookies = null;
 
 	// protected static HttpStatusCode AccountIsLocked = (HttpStatusCode)456;
 
@@ -221,7 +241,7 @@ public abstract class ExchangeServiceBase {
 			throw new ServiceLocalException(strErr);
 		}
 
-		HttpWebRequest request = new HttpClientWebRequest(this.simpleHttpConnectionManager);
+		 request = new HttpClientWebRequest(this.simpleHttpConnectionManager);
 		try {
 			request.setUrl(url.toURL());
 		} catch (MalformedURLException e) {
@@ -254,12 +274,16 @@ public abstract class ExchangeServiceBase {
 			if (null == serviceCredentials) {
 				throw new ServiceLocalException(Strings.CredentialsRequired);
 			}
-
+			
+			if(this.cookies != null && this.cookies.length > 0){
+				request.setUserCookie(this.cookies);
+			}
 			// Make sure that credentials have been authenticated if required
 			serviceCredentials.preAuthenticate();
 
 			// Apply credentials to the request
 			serviceCredentials.prepareWebRequest(request);
+			
 		}
 		try {
 			request.prepareConnection();
@@ -267,11 +291,16 @@ public abstract class ExchangeServiceBase {
 			String strErr = String.format("%s : Connection error ", url);
 			throw new ServiceLocalException(strErr);
 		}
+		
+		this.httpResponseHeaders.clear();
+		 
 		return request;
 	}
 
 	/**
-	 * 
+	 * This method doesn't handle 500 ISE errors. This is handled by the caller since
+     * 500 ISE typically indicates that a SOAP fault has occurred and the handling of
+     * a SOAP fault is currently service specific.
 	 * @param httpWebResponse
 	 * @param webException
 	 * @param responseHeadersTraceFlag
@@ -290,7 +319,7 @@ public abstract class ExchangeServiceBase {
 		"InternalProcessHttpErrorResponse does not handle 500 ISE errors," +
 		" the caller is supposed to handle this.");
 
-		this.traceHttpResponseHeaders( responseHeadersTraceFlag, 
+		this.processHttpResponseHeaders( responseHeadersTraceFlag, 
 				httpWebResponse);
 
 		// E14:321785 -- Deal with new HTTP 
@@ -430,7 +459,7 @@ public abstract class ExchangeServiceBase {
 	 * @throws EWSHttpException
 	 *             the eWS http exception
 	 */
-	protected void traceHttpResponseHeaders(TraceFlags traceType,
+	private void traceHttpResponseHeaders(TraceFlags traceType,
 			HttpWebRequest request) throws XMLStreamException, IOException,
 			EWSHttpException {
 		if (this.isTraceEnabledFor(traceType)) {
@@ -452,7 +481,10 @@ public abstract class ExchangeServiceBase {
 	protected Date convertUniversalDateTimeStringToDate(String dateString) {
 		String localTimeRegex = "^(.*)([+-]{1}\\d\\d:\\d\\d)$";
 		Pattern localTimePattern = Pattern.compile(localTimeRegex);
+		String timeRegex = "[0-9]{2,4}-[0-9]{1,2}-[0-9]{1,2}T[0-9]{2}:[0-9]{1,2}:[0-9]{1,2}.[0-9]{1,7}";		
+		Pattern timePattern = Pattern.compile(timeRegex);
 		String utcPattern = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+		String utcPattern1 = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'";
 		String localPattern = "yyyy-MM-dd'T'HH:mm:ssz";
 		String localPattern1 = "yyyy-MM-dd'Z'";
 		String pattern = "yyyy-MM-ddz";
@@ -479,7 +511,14 @@ public abstract class ExchangeServiceBase {
 
 						try {
 							dt = utcFormatter.parse(dateString);
-						} catch (ParseException e2)	{
+						}catch(ParseException ex){
+							
+							utcFormatter = new SimpleDateFormat(utcPattern1);
+						}
+							try{
+							dt = utcFormatter.parse(dateString);
+						}
+						catch (ParseException e2)	{
 							throw new IllegalArgumentException(errMsg, e);
 						}
 
@@ -625,9 +664,9 @@ public abstract class ExchangeServiceBase {
 	 * @throws URISyntaxException
 	 *             the uRI syntax exception
 	 */
-	public void setCookie(URL url, String value) throws IOException,
+	/*public void setCookie(URL url, String value) throws IOException,
 	URISyntaxException {
-		CookieHandler handler = CookieHandler.getDefault();
+		CookieHandler handler =CookieHandler.getDefault();
 		if (handler != null) {
 			Map<String, List<String>> headers =
 				new HashMap<String, List<String>>();
@@ -637,6 +676,26 @@ public abstract class ExchangeServiceBase {
 
 			handler.put(url.toURI(), headers);
 		}
+	}*/
+	
+	/**
+	 * 
+	 */
+	/**
+	 * Gets the cookie container. <value>The cookie container.</value>
+	 * 
+	 * @param url
+	 *            the url
+	 * @param value
+	 *            the value	
+	 * @throws ServiceLocalException
+	 * @throws EWSHttpException
+	 */
+	public void setCookie(Cookie[] rcookies) throws EWSHttpException {
+
+		if (rcookies != null && rcookies.length > 0)
+			this.cookies = rcookies.clone();
+
 	}
 
 	/**
@@ -650,7 +709,7 @@ public abstract class ExchangeServiceBase {
 	 * @throws URISyntaxException
 	 *             the uRI syntax exception
 	 */
-	public String getCookie(URL url) throws IOException, URISyntaxException {
+	/*public String getCookie(URL url) throws IOException, URISyntaxException {
 		String cookieValue = null;
 
 		CookieHandler handler = CookieHandler.getDefault();
@@ -668,6 +727,12 @@ public abstract class ExchangeServiceBase {
 			}
 		}
 		return cookieValue;
+	}*/
+	
+	
+	
+	public Cookie[] getCookies() {
+		return this.cookies;
 	}
 
 	/***
@@ -751,7 +816,7 @@ public abstract class ExchangeServiceBase {
 	public void setCredentials(ExchangeCredentials credentials) {
 		this.credentials = credentials;
 		this.useDefaultCredentials = false;
-		CookieHandler.setDefault(null);
+		CookieHandler.setDefault(new java.net.CookieManager());
 	}
 
 	/***
@@ -962,5 +1027,71 @@ public abstract class ExchangeServiceBase {
 			onSerializeCustomSoapHeaders) {
 		OnSerializeCustomSoapHeaders = onSerializeCustomSoapHeaders;
 	}
+	
+	/**
+	 * Traces the HTTP response headers.
+	 * @param tracetype 
+	 * 			kind of trace entry
+	 * @param response
+	 * 			The response
+	 * @throws EWSHttpException 
+	 * @throws IOException 
+	 * @throws XMLStreamException 
+	 */
+    protected void processHttpResponseHeaders(TraceFlags traceType, HttpWebRequest request) throws XMLStreamException, IOException, EWSHttpException
+    {
+        this.traceHttpResponseHeaders(traceType, request);
 
+        this.saveHttpResponseHeaders(request.getResponseHeaders());
+    }
+    
+  /** Save the HTTP response headers.
+   * @summary
+   *@param name="headers">The response headers
+   **/
+	private void saveHttpResponseHeaders(Map<String, String> headers) {
+		EwsUtilities.EwsAssert(this.httpResponseHeaders.size() == 0,
+				"ExchangeServiceBase.SaveHttpResponseHeaders",
+				"expect no headers in the dictionary yet.");
+
+		this.httpResponseHeaders.clear();
+
+		for (String key : headers.keySet()) {
+			this.httpResponseHeaders.put(key, headers.get(key));
+		}
+
+		// Save the cookies for subsequent requests
+		if (this.request.getCookies() != null) {
+			this.cookies = this.request.getCookies().clone();
+		}
+		
+	}
+    
+    /**
+    * Gets a collection of HTTP headers from the last response.
+    **/
+    public Map<String, String> getHttpResponseHeaders()
+    {
+      return this.httpResponseHeaders; 
+    }
+
+    /**
+     * Gets the session key.
+     */
+    
+    protected static byte[] getSessionKey()
+    {
+            // this has to be computed only once.
+            synchronized(ExchangeServiceBase.class)
+            {
+                if (ExchangeServiceBase.binarySecret == null)
+                {
+                    Random randomNumberGenerator = new Random();
+                    ExchangeServiceBase.binarySecret = new byte[256 / 8];
+                    randomNumberGenerator.nextBytes(binarySecret);
+                }
+
+                return ExchangeServiceBase.binarySecret;
+        }
+    }
 }

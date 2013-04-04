@@ -137,6 +137,9 @@ class XmlAttributeNames {
 
 	/** The Constant ReturnFullContactData. */
 	public static final String ReturnFullContactData = "ReturnFullContactData";
+	
+	/** The Constant ContactDataShape. */
+	public static final String ContactDataShape = "ContactDataShape";
 
 	/** The Constant Numerator. */
 	public static final String Numerator = "Numerator";

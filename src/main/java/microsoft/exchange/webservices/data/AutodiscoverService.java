@@ -49,7 +49,7 @@ IAutodiscoverRedirectionUrl, IFunctionDelegate {
 	private String dnsServerAddress;
 
 	/** The enable scp lookup. */
-	boolean enableScpLookup = true;
+	private boolean enableScpLookup = true;
 
 	// Autodiscover legacy path
 	/** The Constant AutodiscoverLegacyPath. */
@@ -77,6 +77,18 @@ IAutodiscoverRedirectionUrl, IFunctionDelegate {
 	private static final String AutodiscoverSoapWsSecurityHttpsUrl = 
 		AutodiscoverSoapHttpsUrl +
 		"/wssecurity";
+	
+	 /** 
+	  * Autodiscover SOAP WS-Security symmetrickey HTTPS Url
+      */
+    private static final String AutodiscoverSoapWsSecuritySymmetricKeyHttpsUrl = AutodiscoverSoapHttpsUrl + "/wssecurity/symmetrickey";
+
+   /**   
+    * Autodiscover SOAP WS-Security x509cert HTTPS Url
+    */
+    private static final String AutodiscoverSoapWsSecurityX509CertHttpsUrl = AutodiscoverSoapHttpsUrl + "/wssecurity/x509cert";
+
+	
 	// Autodiscover request namespace
 	/** The Constant AutodiscoverRequestNamespace. */
 	private static final String AutodiscoverRequestNamespace =
@@ -94,6 +106,18 @@ IAutodiscoverRedirectionUrl, IFunctionDelegate {
 	/** The Constant AutodiscoverWsSecurityEnabledHeaderName. */
 	private static final String AutodiscoverWsSecurityEnabledHeaderName = 
 		"X-WSSecurity-Enabled";
+	
+	
+    /** HTTP header indicating that WS-Security/SymmetricKey Autodiscover service is enabled. */
+
+    private static final String AutodiscoverWsSecuritySymmetricKeyEnabledHeaderName = "X-WSSecurity-SymmetricKey-Enabled";
+
+ 
+    /** HTTP header indicating that WS-Security/X509Cert Autodiscover service is enabled. */
+
+    private static final String AutodiscoverWsSecurityX509CertEnabledHeaderName = "X-WSSecurity-X509Cert-Enabled";
+
+	
 	// Minimum request version for Autodiscover SOAP service.
 	/** The Constant MinimumRequestVersionForAutoDiscoverSoapService. */
 	private static final ExchangeVersion 
@@ -173,6 +197,12 @@ IAutodiscoverRedirectionUrl, IFunctionDelegate {
 		} else {
 			PrintWriter writer = new PrintWriter(urlOutStream);
 			this.writeLegacyAutodiscoverRequest(emailAddress, settings, writer);
+			
+			/*  Flush Start */
+			writer.flush();
+			urlOutStream.flush();
+			urlOutStream.close();
+			/* Flush End */
 		}
 		request.executeRequest();
 		request.getResponseCode();
@@ -895,14 +925,23 @@ IAutodiscoverRedirectionUrl, IFunctionDelegate {
 			String emailAddress, 
 			List<UserSettingName> requestedSettings) throws Exception {
         // Cannot call legacy Autodiscover service with WindowsLive credentials
-        if ((this.getCredentials() != null) && (this.getCredentials() instanceof WindowsLiveCredentials)) {
+    	    	   	
+        /*if ((this.getCredentials() != null) && (this.getCredentials() instanceof WindowsLiveCredentials)) {
             throw new AutodiscoverLocalException(
 					Strings.WLIDCredentialsCannotBeUsedWithLegacyAutodiscover);
+        }*/
+    	
+    	// Cannot call legacy Autodiscover service with WindowsLive and other WSSecurity-based credentials
+        if ((this.getCredentials() != null) && (this.getCredentials() instanceof WSSecurityBasedCredentials))
+        {
+            throw new AutodiscoverLocalException(Strings.WLIDCredentialsCannotBeUsedWithLegacyAutodiscover);
         }
 
         OutlookConfigurationSettings settings = this.getLegacyUserSettings(
 				OutlookConfigurationSettings.class, 
 				emailAddress);
+        
+        
 
         return settings.convertSettings(emailAddress, requestedSettings);
     }
@@ -957,7 +996,8 @@ IAutodiscoverRedirectionUrl, IFunctionDelegate {
                         String.format("Autodiscover service returned redirection URL '%s'.", 
 								response.getRedirectTarget()));
 
-                    this.url = new URI(response.getRedirectTarget());
+                    //this.url = new URI(response.getRedirectTarget());
+                    this.url = this.getCredentials().adjustUrl(new URI(response.getRedirectTarget()));
                     break;
 
                 case NoError:
@@ -1046,8 +1086,12 @@ IAutodiscoverRedirectionUrl, IFunctionDelegate {
 
 		// If Url is specified, call service directly.
 		if (this.url != null) {
-			return getSettingsMethod.func(identities, settings, 
+			URI autodiscoverUrl = this.url;
+			response =  getSettingsMethod.func(identities, settings, 
 					requestedVersion, this.url);
+			this.url = autodiscoverUrl;
+			return response;
+			
 
 		}
 		// If Domain is specified, determine endpoint Url and call service.
@@ -1335,7 +1379,11 @@ IAutodiscoverRedirectionUrl, IFunctionDelegate {
 			// available.
 			if ((!endpoints.contains(AutodiscoverEndpoints.Soap)) &&
 					(!endpoints.contains(
-							AutodiscoverEndpoints.WsSecurity))) {
+							AutodiscoverEndpoints.WsSecurity))  
+			// (endpoints .contains( AutodiscoverEndpoints.WSSecuritySymmetricKey) ) &&
+		    //(endpoints .contains( AutodiscoverEndpoints.WSSecurityX509Cert))
+		    )				
+			 {
 				this
 				.traceMessage(
 						TraceFlags.AutodiscoverConfiguration,
@@ -1350,7 +1398,8 @@ IAutodiscoverRedirectionUrl, IFunctionDelegate {
 
 			// If we have WLID credentials, make sure that we have a WS-Security
 			// endpoint
-			/*if (this.getCredentials() instanceof WindowsLiveCredentials) {
+			/*
+			if (this.getCredentials() instanceof WindowsLiveCredentials) {
 				if (endpoints.contains(AutodiscoverEndpoints.WsSecurity)) {
 					this
 							.traceMessage(
@@ -1368,9 +1417,41 @@ IAutodiscoverRedirectionUrl, IFunctionDelegate {
 					url.setParam(new URI(String.format(
 							AutodiscoverSoapWsSecurityHttpsUrl, host)));
 				}
-			}*/
+			}
+			   else if (this.getCredentials() instanceof PartnerTokenCredentials)
+                {
+                    if (endpoints.contains( AutodiscoverEndpoints.WSSecuritySymmetricKey))
+                    {
+                        this.traceMessage(
+                            TraceFlags.AutodiscoverConfiguration,
+                            String.format("No Autodiscover WS-Security/SymmetricKey endpoint is available for host {0}", host));
 
-			return true;
+                        return false;
+                    }
+                    else
+                    {
+                        url.setParam( new URI(String.format(AutodiscoverSoapWsSecuritySymmetricKeyHttpsUrl, host)));
+                    }
+                }
+                else if (this.getCredentials()instanceof X509CertificateCredentials)
+                {
+                    if ((endpoints.contains(AutodiscoverEndpoints.WSSecurityX509Cert))
+                    {
+                        this.traceMessage(
+                            TraceFlags.AutodiscoverConfiguration,
+                            String.format("No Autodiscover WS-Security/X509Cert endpoint is available for host {0}", host));
+
+                        return false;
+                    }
+                    else
+                    {
+                        url.setParam( new URI(String.format(AutodiscoverSoapWsSecurityX509CertHttpsUrl, host)));
+                    }
+                }
+				  */
+                return true;
+
+			 
 		} else {
 			this
 			.traceMessage(
@@ -1565,6 +1646,23 @@ IAutodiscoverRedirectionUrl, IFunctionDelegate {
 						AutodiscoverWsSecurityEnabledHeaderName).isEmpty())) {
 			endpoints.add(AutodiscoverEndpoints.WsSecurity);
 		}
+		
+		/* if (! (request.getResponseHeaders().get(
+				 AutodiscoverWsSecuritySymmetricKeyEnabledHeaderName) !=null || request
+				 .getResponseHeaders().get(
+				 AutodiscoverWsSecuritySymmetricKeyEnabledHeaderName).isEmpty()))
+         {
+             endpoints .add( AutodiscoverEndpoints.WSSecuritySymmetricKey);
+         }
+         if (!(request.getResponseHeaders().get(
+        		 AutodiscoverWsSecurityX509CertEnabledHeaderName)!=null ||
+        		 request.getResponseHeaders().get(
+                		 AutodiscoverWsSecurityX509CertEnabledHeaderName).isEmpty()))
+        		 
+         {
+             endpoints .add(AutodiscoverEndpoints.WSSecurityX509Cert);
+         }*/
+		
 		return endpoints;
 	}
 
@@ -1585,7 +1683,7 @@ IAutodiscoverRedirectionUrl, IFunctionDelegate {
 	protected void traceResponse(HttpWebRequest request,
 			ByteArrayOutputStream memoryStream) throws XMLStreamException,
 			IOException, EWSHttpException {
-		this.traceHttpResponseHeaders(
+		this.processHttpResponseHeaders(
 				TraceFlags.AutodiscoverResponseHttpHeaders, request);
 		String contentType = request.getResponseContentType();
 		if (!(contentType == null || contentType.isEmpty())) {
@@ -1935,7 +2033,96 @@ IAutodiscoverRedirectionUrl, IFunctionDelegate {
 		domainslst.addAll((Collection<? extends String>) domains);
 		return this.getDomainSettings(domainslst, settings, requestedVersion);
 	}
+	
+	/** 
+     * Try to get the partner access information for the given target tenant.
+     * 
+     *@param targetTenantDomain The target domain or user email address. 
+     *@param partnerAccessCredentials The partner access credentials. 
+     *@param targetTenantAutodiscoverUrl The autodiscover url for the given tenant. 
+     *@returns True if the partner access information was retrieved, false otherwise.
+     */
+	
+	/** commented as the code belongs to Partener Token credentials. */
+	  
+  /*  public boolean tryGetPartnerAccess(
+        String targetTenantDomain,
+        OutParam<ExchangeCredentials> partnerAccessCredentials,
+        OutParam<URI> targetTenantAutodiscoverUrl)
+    {
+        EwsUtilities.validateNonBlankStringParam(targetTenantDomain, "targetTenantDomain");
 
+        // the user should set the url to its own tenant's autodiscover url.
+        // 
+        if (this.url == null)
+        {
+            throw new ServiceValidationException(Strings.PartnerTokenRequestRequiresUrl);
+        }
+
+        if (this.getRequestedServerVersion().ordinal() < ExchangeVersion.Exchange2010_SP1.ordinal())
+        {
+            throw new ServiceVersionException(
+                String.format(
+                    Strings.PartnerTokenIncompatibleWithRequestVersion,
+                    ExchangeVersion.Exchange2010_SP1));
+        }
+
+        partnerAccessCredentials = null;
+        targetTenantAutodiscoverUrl = null;
+
+        String smtpAddress = targetTenantDomain;
+        if (!smtpAddress.contains("@"))
+        {
+            smtpAddress = "SystemMailbox{e0dc1c29-89c3-4034-b678-e6c29d823ed9}@" + targetTenantDomain;
+        }
+
+        List<String> smtpAddresses = new ArrayList<String>();
+        smtpAddresses.add(smtpAddress);
+        List<UserSettingName> settings = new ArrayList<UserSettingName>();
+        settings.add(UserSettingName.ExternalEwsUrl);
+        
+        GetUserSettingsRequest request = new GetUserSettingsRequest(this, this.url, true  expectPartnerToken );
+        request.setSmtpAddresses(smtpAddresses);
+        request.setSettings(settings);
+        GetUserSettingsResponseCollection response = request.execute();
+
+        if (request.getPartnerToken()!=null && !request.getPartnerToken().isEmpty())
+            || request.getPartnerTokenReference()!=null && !request.getPartnerTokenReference().isEmpty() ))
+        {
+            return false;
+        }
+
+        if (request.getErrorCode() == AutodiscoverErrorCode.NoError)
+        {
+            GetUserSettingsResponse firstResponse = request.getResponse(0);
+            if (firstResponse.getErrorCode() == AutodiscoverErrorCode.NoError)
+            {
+                targetTenantAutodiscoverUrl = this.url;
+            }
+            else if (firstResponse.getErrorCode() == AutodiscoverErrorCode.RedirectUrl)
+            {
+                targetTenantAutodiscoverUrl = new URI(firstResponse.getRedirectTarget());
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return false;
+        }
+
+        partnerAccessCredentials = new PartnerTokenCredentials(
+            request.getPartnerToken(),
+            request.getPartnerTokenReference());
+
+        targetTenantAutodiscoverUrl = partnerAccessCredentials.adjustUrl(
+            targetTenantAutodiscoverUrl);
+
+        return true;
+    }
+*/
 	/**
 	 * Gets the domain this service is bound to. When this property is
 	 * set, the domain

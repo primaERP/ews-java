@@ -112,6 +112,32 @@ class ComplexPropertyDefinition<TComplexProperty extends ComplexProperty>
 		this.propertyCreationDelegate = propertyCreationDelegate;
 	}
 
+	
+	/**
+	 * Instantiates a new complex property definition.
+	 * 
+	 * @param xmlElementName
+	 *            the xml element name
+	 * @param attachments
+	 *            the attachments
+	 * @param flags
+	 *            the flags
+	 * @param version
+	 *            the version
+	 * @param propertyCreationDelegate
+	 *            the property creation delegate
+	 */
+	public ComplexPropertyDefinition(
+			String attachments,
+			String xmlElementName,
+			ExchangeVersion version,
+			EnumSet<PropertyDefinitionFlags> flags,
+			ICreateComplexPropertyDelegate<TComplexProperty> propertyCreationDelegate) {
+		// TODO Auto-generated constructor stub
+		super(xmlElementName,attachments,flags,version);
+		this.propertyCreationDelegate = propertyCreationDelegate;
+	}
+
 	/***
 	 * Creates the property instance.
 	 * 

@@ -8,9 +8,14 @@ package microsoft.exchange.webservices.data;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Calendar;
+import java.util.Date;
 
+import javax.swing.text.DateFormatter;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+
+//import sun.util.calendar.CalendarDate;
 
 /**
  * WSSecurityBasedCredentials is the base class for all credential classes using
@@ -23,30 +28,40 @@ public abstract class WSSecurityBasedCredentials extends ExchangeCredentials {
 
 	/** The ews url. */
 	private URI ewsUrl;
-
+	
+	protected static final String wsuTimeStampFormat =
+        "<wsu:Timestamp>" +
+        "<wsu:Created>{0:yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'}</wsu:Created>" +
+        "<wsu:Expires>{1:yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'}</wsu:Expires>" +
+        "</wsu:Timestamp>";
+//kavi-start
 	// WS-Security SecExt 1.0 Namespace (and the namespace prefix we will use
 	// for it).
 	/** The Constant WSSecuritySecExt10NamespacePrefix. */
-	protected static final String WSSecuritySecExt10NamespacePrefix = "wsse";
+	//protected static final String WSSecuritySecExt10NamespacePrefix = "wsse";
 
 	/** The Constant WSSecuritySecExt10Namespace. */
-	protected static final String WSSecuritySecExt10Namespace = 
-		"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
+	//protected static final String WSSecuritySecExt10Namespace = 
+	//	"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
 
 	// WS-Addressing 1.0 Namespace (and the namespace prefix we will use for
 	// it).
+	
+	
 	/** The Constant WSAddressing10NamespacePrefix. */
-	protected static final String WSAddressing10NamespacePrefix = "wsa";
+	//protected static final String WSAddressing10NamespacePrefix = "wsa";
 
 	/** The Constant WSAddressing10Namespace. */
-	protected static final String WSAddressing10Namespace =
-		"http://www.w3.org/2005/08/addressing";
-
+	//protected static final String WSAddressing10Namespace =
+	//	"http://www.w3.org/2005/08/addressing";
+	
+	//kavi end
+	
 	// The WS-Addressing headers format string to use for adding the
 	// WS-Addressing headers.
 	// Fill-Ins: %s = Web method name; %s = EWS URL
 	/** The Constant WsAddressingHeadersFormat. */
-	protected static final String WsAddressingHeadersFormat =
+	protected static final String wsAddressingHeadersFormat =
 		"<wsa:Action soap:mustUnderstand='1'>http://schemas.microsoft.com/exchange/services/2006/messages/%s</wsa:Action>" +
 		"<wsa:ReplyTo><wsa:Address>http://www.w3.org/2005/08/addressing/anonymous</wsa:Address>" +
 		"</wsa:ReplyTo>" +
@@ -57,14 +72,16 @@ public abstract class WSSecurityBasedCredentials extends ExchangeCredentials {
 	// Fill-Ins:
 	// %s = EncryptedData block (the token)
 	/** The Constant WsSecurityHeaderFormat. */
-	protected static final String WsSecurityHeaderFormat = 
+	protected static final String wsSecurityHeaderFormat = 
 		"<wsse:Security soap:mustUnderstand='1'>" +
 		"  %s" + // EncryptedData (token)
 		"</wsse:Security>";
 
+	private boolean addTimestamp;
+	
 	// / Path suffix for WS-Security endpoint.
 	/** The Constant WsSecurityPathSuffix. */
-	protected static final String WsSecurityPathSuffix = "/wssecurity";
+	protected static final String wsSecurityPathSuffix = "/wssecurity";
 
 	/**
 	 * Initializes a new instance of the WSSecurityBasedCredentials class.	 
@@ -80,6 +97,19 @@ public abstract class WSSecurityBasedCredentials extends ExchangeCredentials {
 	protected WSSecurityBasedCredentials(String securityToken) {
 		this.securityToken = securityToken;
 	}
+
+	/**
+	 * Initializes a new instance of the WSSecurityBasedCredentials class.	
+	 * @param securityToken
+	 * 				The security token. 
+	* @param addTimestamp
+	 * 				Timestamp should be added.
+	 */
+    protected WSSecurityBasedCredentials(String securityToken, boolean addTimestamp)
+    {
+        this.securityToken = securityToken;
+        this.addTimestamp = addTimestamp;
+    }
 
 	/**
 	 * This method is called to pre-authenticate credentials before a service
@@ -101,12 +131,16 @@ public abstract class WSSecurityBasedCredentials extends ExchangeCredentials {
 	@Override
 	protected void emitExtraSoapHeaderNamespaceAliases(XMLStreamWriter writer)
 	throws XMLStreamException {
-		writer.writeAttribute("xmlns",
-				WSSecurityBasedCredentials.WSSecuritySecExt10NamespacePrefix,
-				null, WSSecurityBasedCredentials.WSSecuritySecExt10Namespace);
-		writer.writeAttribute("xmlns",
-				WSSecurityBasedCredentials.WSAddressing10NamespacePrefix, null,
-				WSSecurityBasedCredentials.WSAddressing10Namespace);
+		writer.writeAttribute(
+                "xmlns",
+                EwsUtilities.WSSecuritySecExtNamespacePrefix,
+                null,
+                EwsUtilities.WSSecuritySecExtNamespace);
+            writer.writeAttribute(
+                "xmlns",
+                EwsUtilities.WSAddressingNamespacePrefix,
+                null,
+                EwsUtilities.WSAddressingNamespace);
 	}
 
 	/**
@@ -149,7 +183,7 @@ public abstract class WSSecurityBasedCredentials extends ExchangeCredentials {
 
 		// Format the WS-Addressing headers.
 		String wsAddressingHeaders = String.format(
-				WSSecurityBasedCredentials.WsAddressingHeadersFormat,
+				WSSecurityBasedCredentials.wsAddressingHeadersFormat,
 				webMethodName, this.ewsUrl);
 
 		// And write them out...
@@ -171,11 +205,25 @@ public abstract class WSSecurityBasedCredentials extends ExchangeCredentials {
 		EwsUtilities.EwsAssert(this.securityToken != null,
 				"WSSecurityBasedCredentials.SerializeWSSecurityHeaders",
 		"Security token cannot be null!");
+		
+		// <wsu:Timestamp wsu:Id="_timestamp">
+        //   <wsu:Created>2007-09-20T01:13:10.468Z</wsu:Created>
+        //   <wsu:Expires>2007-09-20T01:18:10.468Z</wsu:Expires>
+        // </wsu:Timestamp>
+        //
+        String timestamp = null;
+        if (this.addTimestamp)
+        {
+          	Calendar utcNow=Calendar.getInstance();
+        	utcNow.add(Calendar.MINUTE, 5);
+        	timestamp=String.format(WSSecurityBasedCredentials.wsuTimeStampFormat,utcNow,utcNow);
+        			
+        	}
 
 		// Format the WS-Security header based on all the information we have.
 		String wsSecurityHeader = String.format(
-				WSSecurityBasedCredentials.WsSecurityHeaderFormat,
-				this.securityToken);
+				WSSecurityBasedCredentials.wsSecurityHeaderFormat,
+				 timestamp + this.securityToken);
 
 		// And write the header out...
 		xmlWriter.writeCharacters(wsSecurityHeader);
@@ -192,8 +240,7 @@ public abstract class WSSecurityBasedCredentials extends ExchangeCredentials {
 	 */
 	@Override
 	protected URI adjustUrl(URI url) throws URISyntaxException {
-		return new URI(url.getHost() +
-				WSSecurityBasedCredentials.WsSecurityPathSuffix);
+		return new URI(getUriWithoutWSSecurity(url) + WSSecurityBasedCredentials.wsSecurityPathSuffix);
 	}
 
 	/**

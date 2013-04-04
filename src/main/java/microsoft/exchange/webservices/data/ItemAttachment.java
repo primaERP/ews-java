@@ -108,6 +108,37 @@ public class ItemAttachment extends Attachment implements
 
 		return result;
 	}
+	
+	/**  
+    * For ItemAttachment, AttachmentId and Item should be patched. 
+    *  
+    * @param reader The reader.
+    * 
+    * True if element was read.
+    */
+    protected  boolean tryReadElementFromXmlToPatch(EwsServiceXmlReader reader)throws Exception
+    {
+		// update the attachment id.
+		super.tryReadElementFromXml(reader);
+
+		reader.read();
+		Class itemClass = EwsUtilities.getItemTypeFromXmlElementName(reader
+				.getLocalName().toString());
+
+		if (itemClass != null) {
+			if (this.item == null
+					|| this.item.getClass() != itemClass) {
+				throw new ServiceLocalException(
+						Strings.AttachmentItemTypeMismatch);
+			}
+
+			this.item.loadFromXml(reader, false /* clearPropertyBag */);
+			return true;
+		}
+
+		return false;
+    }
+
 
 	/**
 	 * Writes the properties of this object as XML elements.

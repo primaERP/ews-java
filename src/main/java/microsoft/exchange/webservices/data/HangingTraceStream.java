@@ -34,9 +34,6 @@ class HangingTraceStream extends InputStream{
 		this.underlyingStream = stream;
 		this.service = service;
 
-		if (this.service.isTraceEnabledFor(TraceFlags.EwsResponse)) {
-			this.responseCopy = new ByteArrayOutputStream();
-		}
 	}
 
 	/**
@@ -124,13 +121,14 @@ class HangingTraceStream extends InputStream{
 	}
 
 	/**
-	 * Gets the response copy.
-	 * 
-	 * @return A copy of the response.
+	 * sets the response copy
+	 * @param responsecopy 
+	 * 				a copy of response
 	 */
-	protected ByteArrayOutputStream GetResponseCopy() {
-		return this.responseCopy;
-	}
+	protected void setResponseCopy(ByteArrayOutputStream responseCopy)
+    {
+        this.responseCopy = responseCopy;
+    }
 
 	@Override
 	public int read() throws IOException {

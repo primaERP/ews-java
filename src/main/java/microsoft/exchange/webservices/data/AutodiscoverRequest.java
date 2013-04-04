@@ -90,16 +90,28 @@ abstract class AutodiscoverRequest {
 		try {
 			request = this.service.prepareHttpWebRequestForUrl(this.url);
 			this.service.traceHttpRequestHeaders(
-			TraceFlags.AutodiscoverRequestHttpHeaders, request);
+					TraceFlags.AutodiscoverRequestHttpHeaders, request);
+
+			boolean needSignature = this.getService().getCredentials() != null
+					&& this.getService().getCredentials().isNeedSignature();
+			boolean needTrace = this.getService().isTraceEnabledFor(
+					TraceFlags.AutodiscoverRequest);
 
 			OutputStream urlOutStream = request.getOutputStream();
 			// OutputStreamWriter out = new OutputStreamWriter(request
 			// .getOutputStream());
 
 			ByteArrayOutputStream memoryStream = new ByteArrayOutputStream();
-			this.writeSoapRequest(this.url, memoryStream);
+			EwsServiceXmlWriter writer = new EwsServiceXmlWriter(this
+					.getService(), memoryStream);
+			writer.setRequireWSSecurityUtilityNamespace(needSignature);
+			this.writeSoapRequest(this.url, writer);
 
-			if (this.service.isTraceEnabledFor(TraceFlags.AutodiscoverRequest)) {
+			if (needSignature) {
+				this.service.getCredentials().sign(memoryStream);
+			}
+
+			if (needTrace) {
 				memoryStream.flush();
 				this.service.traceXml(TraceFlags.AutodiscoverRequest,
 						memoryStream);
@@ -168,7 +180,7 @@ abstract class AutodiscoverRequest {
 						Strings.InvalidAutodiscoverServiceResponse);
 			}
 
-			this.readSoapHeader(ewsXmlReader);
+			this.readSoapHeaders(ewsXmlReader);
 
 			AutodiscoverResponse response = this.readSoapBody(ewsXmlReader);
 
@@ -189,22 +201,20 @@ abstract class AutodiscoverRequest {
 			// Wrap exception
 			throw new ServiceRequestException(String.format(
 					Strings.ServiceRequestFailed, ex.getMessage()), ex);
-		} catch (IOException ex)
-        {
-            this.service.traceMessage(
-                TraceFlags.AutodiscoverConfiguration,
-                String.format("I/O error: %s", ex.getMessage()));
+		} catch (IOException ex) {
+			this.service.traceMessage(TraceFlags.AutodiscoverConfiguration,
+					String.format("I/O error: %s", ex.getMessage()));
 
-            // Wrap exception
-            throw new ServiceRequestException(String.format(
+			// Wrap exception
+			throw new ServiceRequestException(String.format(
 					Strings.ServiceRequestFailed, ex.getMessage()), ex);
-        } catch (Exception ex) {
+		} catch (Exception ex) {
 			// HttpWebRequest httpWebResponse = (HttpWebRequest)ex;
 
 			if (null != request && request.getResponseCode() == 7) {
 				if (AutodiscoverRequest.isRedirectionResponse(request)) {
 					this.service
-							.traceHttpResponseHeaders(
+							.processHttpResponseHeaders(
 									TraceFlags.AutodiscoverResponseHttpHeaders,
 									request);
 
@@ -223,10 +233,10 @@ abstract class AutodiscoverRequest {
 					Strings.ServiceRequestFailed, ex.getMessage()), ex);
 		} finally {
 			try {
-				request.close(); 
+				request.close();
 			} catch (Exception e2) {
 				request = null;
-			} 
+			}
 		}
 
 	}
@@ -317,8 +327,7 @@ abstract class AutodiscoverRequest {
 				if (redirectionUri.getScheme().toLowerCase().equals("http")
 						|| redirectionUri.getScheme().toLowerCase().equals(
 								"https")) {
-					AutodiscoverResponse response = this
-							.createServiceResponse();
+					AutodiscoverResponse response = this.createServiceResponse();
 					response.setErrorCode(AutodiscoverErrorCode.RedirectUrl);
 					response.setRedirectionUrl(redirectionUri);
 					return response;
@@ -446,10 +455,14 @@ abstract class AutodiscoverRequest {
 	 *             the service xml serialization exception
 	 */
 	protected void writeSoapRequest(URI requestUrl,
-			ByteArrayOutputStream memoryStream) throws XMLStreamException,
-			ServiceXmlSerializationException {
-		EwsServiceXmlWriter writer = new EwsServiceXmlWriter(this.service,
-				memoryStream);
+			EwsServiceXmlWriter writer) throws XMLStreamException,
+ ServiceXmlSerializationException {
+
+		if (writer.isRequireWSSecurityUtilityNamespace()) {
+			writer.writeAttributeValue("xmlns",
+					EwsUtilities.WSSecurityUtilityNamespacePrefix,
+					EwsUtilities.WSSecurityUtilityNamespace);
+		}
 		writer.writeStartDocument();
 		writer.writeStartElement(XmlNamespace.Soap,
 				XmlElementNames.SOAPEnvelopeElementName);
@@ -484,6 +497,8 @@ abstract class AutodiscoverRequest {
 		writer.writeElementValue(XmlNamespace.WSAddressing, XmlElementNames.To,
 				requestUrl.toString());
 
+		this.writeExtraCustomSoapHeadersToXml(writer);
+
 		if (this.service.getCredentials() != null) {
 			this.service.getCredentials().serializeWSSecurityHeaders(
 					writer.getInternalWriter());
@@ -503,6 +518,20 @@ abstract class AutodiscoverRequest {
 		writer.flush();
 		writer.dispose();
 	}
+	
+	/**
+    * Write extra headers. 
+    *
+    *@param writer The writer
+	 * @throws ServiceXmlSerializationException 
+	 * @throws XMLStreamException 
+    **/ 
+    protected void writeExtraCustomSoapHeadersToXml(EwsServiceXmlWriter writer) throws XMLStreamException, ServiceXmlSerializationException
+    {
+        // do nothing here. 
+        // currently used only by GetUserSettingRequest to emit the BinarySecret header.
+    }
+
 
 	/**
 	 * * Writes XML body.
@@ -568,19 +597,30 @@ abstract class AutodiscoverRequest {
 	 * @throws Exception
 	 *             the exception
 	 */
-	protected void readSoapHeader(EwsXmlReader reader) throws Exception {
+	protected void readSoapHeaders(EwsXmlReader reader) throws Exception {
 		reader.readStartElement(XmlNamespace.Soap,
 				XmlElementNames.SOAPHeaderElementName);
 		do {
 			reader.read();
 
-			// Is this the ServerVersionInfo?
-			if (reader.isStartElement(XmlNamespace.Autodiscover,
-					XmlElementNames.ServerVersionInfo)) {
-				this.service.setServerInfo(this.readServerVersionInfo(reader));
-			}
+			this.readSoapHeader(reader);
 		} while (!reader.isEndElement(XmlNamespace.Soap,
 				XmlElementNames.SOAPHeaderElementName));
+	}
+		
+	  /**
+    * Reads a single SOAP header.
+    *
+    *@param  reader EwsXmlReader 
+	 * @throws Exception 
+    */
+    protected void readSoapHeader(EwsXmlReader reader) throws Exception
+ {
+		// Is this the ServerVersionInfo?
+		if (reader.isStartElement(XmlNamespace.Autodiscover,
+				XmlElementNames.ServerVersionInfo)) {
+			this.service.setServerInfo(this.readServerVersionInfo(reader));
+		}
 	}
 
 	/**

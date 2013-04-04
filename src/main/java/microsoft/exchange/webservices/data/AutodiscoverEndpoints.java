@@ -21,8 +21,14 @@ enum AutodiscoverEndpoints {
 	Soap(2),
 	
 	/** The WS-Security endpoint. */
-	WsSecurity(4);
+	WsSecurity(4),
+	 
+    /** The WS-Security/SymmetricKey endpoint.*/
+    WSSecuritySymmetricKey(8),
 
+    /** The WS-Security/X509Cert endpoint.*/
+    WSSecurityX509Cert(16);
+	
 	/** The autodis endpts. */
 	@SuppressWarnings("unused")
 	private final int autodisEndpts;
