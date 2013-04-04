@@ -63,12 +63,19 @@ public class StringList extends ComplexProperty implements Iterable<String> {
 	@Override
 	protected boolean tryReadElementFromXml(EwsServiceXmlReader reader)
 			throws XMLStreamException, ServiceXmlDeserializationException {
+		boolean returnValue = false;
 		if (reader.getLocalName().equals(this.itemXmlElementName)) {
-			this.add(reader.readValue());
-			return true;
-		} else {
-			return false;
+			if (!reader.isEmptyElement()) {
+				this.add(reader.readValue());
+				returnValue = true;
+			} else {
+				reader.read();
+
+				returnValue = true;
+			}
+
 		}
+		return returnValue;
 	}
 
 	/**

@@ -14,10 +14,10 @@ import javax.xml.stream.XMLStreamException;
  * 
  */
 abstract class AbsoluteMonthTransition extends TimeZoneTransition {
-	
+
 	/** The time offset. */
 	private TimeSpan timeOffset;
-	
+
 	/** The month. */
 	private int month;
 
@@ -31,7 +31,7 @@ abstract class AbsoluteMonthTransition extends TimeZoneTransition {
 	 *             throws Exception
 	 */
 	@Override
-    protected boolean tryReadElementFromXml(EwsServiceXmlReader reader)
+	protected boolean tryReadElementFromXml(EwsServiceXmlReader reader)
 			throws Exception {
 		if (super.tryReadElementFromXml(reader)) {
 			return true;
@@ -69,14 +69,11 @@ abstract class AbsoluteMonthTransition extends TimeZoneTransition {
 			throws ServiceXmlSerializationException, XMLStreamException {
 		super.writeElementsToXml(writer);
 
-		writer.writeElementValue(
-				XmlNamespace.Types,
-				XmlElementNames.TimeOffset, 
-				EwsUtilities.getTimeSpanToXSDuration(this.timeOffset));
+		writer.writeElementValue(XmlNamespace.Types,
+				XmlElementNames.TimeOffset, EwsUtilities
+						.getTimeSpanToXSDuration(this.timeOffset));
 
-		writer.writeElementValue(
-				XmlNamespace.Types, 
-				XmlElementNames.Month,
+		writer.writeElementValue(XmlNamespace.Types, XmlElementNames.Month,
 				this.month);
 	}
 
@@ -105,7 +102,7 @@ abstract class AbsoluteMonthTransition extends TimeZoneTransition {
 
 	/**
 	 * Gets the time offset from midnight when the transition occurs.
-	 *
+	 * 
 	 * @return the time offset
 	 */
 	protected TimeSpan getTimeOffset() {
@@ -114,7 +111,7 @@ abstract class AbsoluteMonthTransition extends TimeZoneTransition {
 
 	/**
 	 * Gets the month when the transition occurs.
-	 *
+	 * 
 	 * @return the month
 	 */
 	protected int getMonth() {

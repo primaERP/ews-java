@@ -104,7 +104,7 @@ final class GetUserAvailabilityRequest extends SimpleServiceRequestBase {
 				new LegacyAvailabilityTimeZone();
 
 			legacyTimeZone.writeToXml(writer, XmlElementNames.TimeZone);
-		//}
+		
 
 		writer.writeStartElement(XmlNamespace.Messages,
 				XmlElementNames.MailboxDataArray);

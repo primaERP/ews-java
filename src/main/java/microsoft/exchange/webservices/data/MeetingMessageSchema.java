@@ -41,7 +41,7 @@ public class MeetingMessageSchema extends EmailMessageSchema {
 	 */
 	public static final PropertyDefinition AssociatedAppointmentId =
 		new ComplexPropertyDefinition<ItemId>(
-				ItemId.class,
+			//	ItemId.class,
 			XmlElementNames.AssociatedCalendarItemId,
 			FieldUris.AssociatedCalendarItemId,
 			ExchangeVersion.Exchange2007_SP1,

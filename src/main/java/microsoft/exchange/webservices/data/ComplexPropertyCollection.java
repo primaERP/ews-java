@@ -138,6 +138,44 @@ public abstract class ComplexPropertyCollection
 		}
 	}
 	
+    /**  
+    * Loads from XML to update itself.
+    * @param reader The reader. 
+    * @param xmlNamespace The XML namespace. 
+    * @param xmlElementName Name of the XML element.
+    **/
+	 
+    protected  void updateFromXml(
+        EwsServiceXmlReader reader,
+        XmlNamespace xmlNamespace,
+        String xmlElementName)throws Exception
+    {
+        reader.ensureCurrentNodeIsStartElement(xmlNamespace, xmlElementName);
+
+        if (!reader.isEmptyElement())
+        {
+            int index = 0;
+            do
+            {
+                reader.read();
+
+                if (reader.isStartElement())
+                {
+                    TComplexProperty complexProperty = this.createComplexProperty(reader.getLocalName());
+                    TComplexProperty actualComplexProperty = this.getPropertyAtIndex(index++);
+
+                    if (complexProperty == null || !complexProperty.getClass().equals( actualComplexProperty))
+                    {
+                        throw new ServiceLocalException(Strings.PropertyTypeIncompatibleWhenUpdatingCollection);
+                    }
+
+                    actualComplexProperty.updateFromXml(reader, xmlNamespace, reader.getLocalName());
+                }
+            }
+            while (!reader.isEndElement(xmlNamespace, xmlElementName));
+        }
+    }
+	
 	/**
 	 * Writes to XML.
 	 * @param writer The writer.

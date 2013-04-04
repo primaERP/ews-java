@@ -1612,6 +1612,15 @@ class XmlElementNames {
 
 	/** The Constant ReturnNewItemIds. */
 	public static final String ReturnNewItemIds = "ReturnNewItemIds";
+	
+	/** The Constant DateTimePrecision. */
+    public static final String DateTimePrecision = "DateTimePrecision";
+    
+    /** The Constant PasswordExpirationDate. */
+    public static final String PasswordExpirationDate = "PasswordExpirationDate";
+    
+    /** The Constant StoreEntryId. */
+    public static final String StoreEntryId = "StoreEntryId";
 
 	// Conversations
 	/** The Constant Conversations. */
@@ -1761,6 +1770,9 @@ class XmlElementNames {
 	/** The Constant Autodiscover. */
 	public static final String Autodiscover = "Autodiscover";
 
+	/** The Constant BinarySecret. */
+	public static final String BinarySecret = "BinarySecret";
+	
 	/** The Constant Response. */
 	public static final String Response = "Response";
 
@@ -2035,6 +2047,12 @@ class XmlElementNames {
 
 	/** The Constant ExchangeRpcUrl. */
 	public static final String ExchangeRpcUrl = "ExchangeRpcUrl";
+	
+	/** The Constant PartnerToken. */
+	public static final String PartnerToken = "PartnerToken";
+
+	/** The Constant PartnerTokenReference. */
+	public static final String PartnerTokenReference = "PartnerTokenReference";
 
 	// InboxRule
 	/** The Constant MinorBuildNumber. */
@@ -2298,6 +2316,40 @@ class XmlElementNames {
 
 	/** The Constant IsLessThanOrEqualTo. */
 	public static final String IsLessThanOrEqualTo = "IsLessThanOrEqualTo";
+	
+	//Directory only contact properties
+	/** The Constant PhoneticFullName. */
+    public static final String PhoneticFullName = "PhoneticFullName";
+    
+    /** The Constant PhoneticFirstName. */
+    public static final String PhoneticFirstName = "PhoneticFirstName";
+    
+    /** The Constant PhoneticLastName. */
+    public static final String PhoneticLastName = "PhoneticLastName";
+    
+    /** The Constant Alias. */
+    public static final String Alias = "Alias";
+    
+    /** The Constant Notes. */
+    public static final String Notes = "Notes";
+    
+    /** The Constant Photo. */
+    public static final String Photo = "Photo";
+    
+    /** The Constant UserSMIMECertificate. */
+    public static final String UserSMIMECertificate = "UserSMIMECertificate";
+    
+    /** The Constant MSExchangeCertificate. */
+    public static final String MSExchangeCertificate = "MSExchangeCertificate";
+    
+    /** The Constant DirectoryId. */
+    public static final String DirectoryId = "DirectoryId";
+    
+    /** The Constant ManagerMailbox. */
+    public static final String ManagerMailbox = "ManagerMailbox";
+    
+    /** The Constant DirectReports. */
+    public static final String DirectReports = "DirectReports";
 
 	// Request/response element names
 	/** The Constant ResponseMessage. */
@@ -2841,7 +2893,13 @@ class XmlElementNames {
 	/** The Constant ExecuteDiagnosticMethodResponseMEssage. */
 	public static final String ExecuteDiagnosticMethodResponseMEssage = 
 		"ExecuteDiagnosticMethodResponseMessage";
-
+	
+	//GetPasswordExpirationDate
+	/** The Constant GetPasswordExpirationDate. */
+    public static final String GetPasswordExpirationDateRequest = "GetPasswordExpirationDate";
+    
+    /** The Constant GetPasswordExpirationDateResponse. */
+    public static final String GetPasswordExpirationDateResponse = "GetPasswordExpirationDateResponse";
 
 	// SOAP element names
 

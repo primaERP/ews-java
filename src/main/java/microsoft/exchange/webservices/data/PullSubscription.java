@@ -45,6 +45,41 @@ public final class PullSubscription extends SubscriptionBase {
 		this.moreEventsAvailable = results.isMoreEventsAvailable();
 		return results;
 	}
+	
+	/**
+	 * Begins an asynchronous request to obtain a collection of events that occurred on the subscribed
+	 * folders since the point in time defined by the Watermark property
+	 * @param callback
+	 * 					 The AsyncCallback delegate
+	 * @param state 
+	 * 				An object that contains state information for this request
+	 * @throws Exception 
+	 * @returns An IAsyncResult that references the asynchronous request
+	 */
+  public IAsyncResult beginGetEvents(AsyncCallback callback, Object state) throws Exception
+    {
+        return this.getService().beginGetEvents(callback,state, this.getId(), this.getWaterMark());
+    }
+
+    /**
+	 * Ends an asynchronous request to obtain a collection of events that occurred on the subscribed
+	 * folders since the point in time defined by the Watermark property.When EndGetEvents succeeds, Watermark is updated.
+	 * @param asyncResult
+	 * 					 An IAsyncResult that references the asynchronous request.
+	 * @param state 
+	 * 				An object that contains state information for this request
+     * @throws Exception 
+	 * @returns Returns a collection of events that occurred since the last watermark.
+	 */
+    public GetEventsResults endGetEvents(IAsyncResult asyncResult) throws Exception
+    {
+        GetEventsResults results = this.getService().endGetEvents(asyncResult);
+
+        this.setWaterMark(results.getNewWatermark());
+        this.moreEventsAvailable = results.isMoreEventsAvailable();
+
+        return results;
+    }
 
 	/**
 	 * Unsubscribes from the pull subscription.
@@ -55,6 +90,31 @@ public final class PullSubscription extends SubscriptionBase {
 	public void unsubscribe() throws Exception {
 		getService().unsubscribe(getId());
 	}
+
+	
+	 /**
+	 * Begins an asynchronous request to unsubscribe from the pull subscription. 
+	 * @param callback
+	 * 					The AsyncCallback delegate.
+	 * @param state 
+	 * 				An object that contains state information for this request
+	 * @throws Exception 
+	 * @returns An IAsyncResult that references the asynchronous request
+	 */
+    public IAsyncResult beginUnsubscribe(AsyncCallback callback, Object state) throws Exception
+    {
+        return this.getService().beginUnsubscribe(callback,state, this.getId());
+    }
+
+    /**
+    * Ends an asynchronous request to unsubscribe from the pull subscription. 
+    *@param asyncResult An IAsyncResult that references the asynchronous request.
+     * @throws Exception 
+    */
+    public void endUnsubscribe(IAsyncResult asyncResult) throws Exception
+    {
+        this.getService().endUnsubscribe(asyncResult);
+    }
 
 	/**
 	 * Gets a value indicating whether more events are available on the server.

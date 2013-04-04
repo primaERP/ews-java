@@ -356,6 +356,9 @@ class ConversationAction {
 				}
 			}
 		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
 		finally {
 			writer.writeEndElement();
 		}

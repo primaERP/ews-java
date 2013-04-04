@@ -224,5 +224,9 @@ public enum UserSettingName {
 	/// The version of the Exchange Web Services
 	///server ExternalEwsUrl is pointing to.
 	/** The External Ews Version. */
-	ExternalEwsVersion
+	ExternalEwsVersion,
+	
+	/** Mobile Mailbox policy settings.*/
+   
+    MobileMailboxPolicy,
 }

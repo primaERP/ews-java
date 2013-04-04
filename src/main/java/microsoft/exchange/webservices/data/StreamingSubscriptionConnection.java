@@ -15,9 +15,9 @@ import java.util.Map;
 /**
  * Represents a connection to an ongoing stream of events.
  */
-public final class StreamingSubscriptionConnection implements 
-Closeable,HangingServiceRequestBase.IHandleResponseObject,
-HangingServiceRequestBase.IHangingRequestDisconnectHandler{
+public final class StreamingSubscriptionConnection implements Closeable,
+		HangingServiceRequestBase.IHandleResponseObject,
+		HangingServiceRequestBase.IHangingRequestDisconnectHandler {
 
 	/**
 	 * Mapping of streaming id to subscriptions currently on the connection.
@@ -46,22 +46,23 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 
 	public interface INotificationEventDelegate {
 		/**
-		 * Represents a delegate that is invoked when 
-		 * notifications are received from the server
-		 * @param sender The StreamingSubscriptionConnection 
-		 * instance that received the events.
-		 * @param args The event data.
+		 * Represents a delegate that is invoked when notifications are received
+		 * from the server
+		 * 
+		 * @param sender
+		 *            The StreamingSubscriptionConnection instance that received
+		 *            the events.
+		 * @param args
+		 *            The event data.
 		 */
-		void notificationEventDelegate(Object sender, 
-				NotificationEventArgs args);
+		void notificationEventDelegate(Object sender, NotificationEventArgs args);
 	}
-	
+
 	/***
-	 * Notification events Occurs when 
-	 * notifications are received from the server.
+	 * Notification events Occurs when notifications are received from the
+	 * server.
 	 */
-	private List<INotificationEventDelegate> onNotificationEvent = 
-		new ArrayList<INotificationEventDelegate>();
+	private List<INotificationEventDelegate> onNotificationEvent = new ArrayList<INotificationEventDelegate>();
 
 	/***
 	 * Set event to happen when property Notify.
@@ -95,21 +96,23 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 	public interface ISubscriptionErrorDelegate {
 
 		/**
-		 * Represents a delegate that is invoked when 
-		 * an error occurs within a streaming subscription connection.
-		 * @param sender The StreamingSubscriptionConnection 
-		 * instance within which the error occurred.
-		 * @param args The event data.
+		 * Represents a delegate that is invoked when an error occurs within a
+		 * streaming subscription connection.
+		 * 
+		 * @param sender
+		 *            The StreamingSubscriptionConnection instance within which
+		 *            the error occurred.
+		 * @param args
+		 *            The event data.
 		 */
-		void subscriptionErrorDelegate(Object sender, 
+		void subscriptionErrorDelegate(Object sender,
 				SubscriptionErrorEventArgs args);
 	}
-	
+
 	/***
 	 * Subscription events Occur when a subscription encounters an error.
 	 */
-	private List<ISubscriptionErrorDelegate> onSubscriptionError = 
-		new ArrayList<ISubscriptionErrorDelegate>();
+	private List<ISubscriptionErrorDelegate> onSubscriptionError = new ArrayList<ISubscriptionErrorDelegate>();
 
 	/***
 	 * Set event to happen when property subscriptionError.
@@ -141,11 +144,10 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 	}
 
 	/***
-	 * Disconnect events Occurs when a streaming subscription 
-	 * connection is disconnected from the server.
+	 * Disconnect events Occurs when a streaming subscription connection is
+	 * disconnected from the server.
 	 */
-	private List<ISubscriptionErrorDelegate> onDisconnect = 
-		new ArrayList<ISubscriptionErrorDelegate>();
+	private List<ISubscriptionErrorDelegate> onDisconnect = new ArrayList<ISubscriptionErrorDelegate>();
 
 	/***
 	 * Set event to happen when property disconnect.
@@ -153,8 +155,7 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 	 * @param disconnect
 	 *            disconnect event
 	 */
-	public void addOnDisconnect(
-			ISubscriptionErrorDelegate disconnect) {
+	public void addOnDisconnect(ISubscriptionErrorDelegate disconnect) {
 		onDisconnect.add(disconnect);
 	}
 
@@ -164,8 +165,7 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 	 * @param disconnect
 	 *            disconnect event
 	 */
-	public void removeDisconnect(
-			ISubscriptionErrorDelegate disconnect) {
+	public void removeDisconnect(ISubscriptionErrorDelegate disconnect) {
 		onDisconnect.remove(disconnect);
 	}
 
@@ -177,22 +177,22 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 	}
 
 	/**
-	 *  Initializes a new instance of the StreamingSubscriptionConnection class.
-	 *  @param service The ExchangeService instance this
-	 *   connection uses to connect to the server.
-	 *  @param lifetime The maximum time, in minutes, the connection
-	 *   will remain open. Lifetime must be between 1 and 30.
-	 * @throws Exception 
+	 * Initializes a new instance of the StreamingSubscriptionConnection class.
+	 * 
+	 * @param service
+	 *            The ExchangeService instance this connection uses to connect
+	 *            to the server.
+	 * @param lifetime
+	 *            The maximum time, in minutes, the connection will remain open.
+	 *            Lifetime must be between 1 and 30.
+	 * @throws Exception
 	 */
-	public StreamingSubscriptionConnection(
-			ExchangeService service,
-			int lifetime) throws Exception {
+	public StreamingSubscriptionConnection(ExchangeService service, int lifetime)
+			throws Exception {
 		EwsUtilities.validateParam(service, "service");
 
-		EwsUtilities.validateClassVersion(
-				service,
-				ExchangeVersion.Exchange2010_SP1,
-				this.getClass().getName());
+		EwsUtilities.validateClassVersion(service,
+				ExchangeVersion.Exchange2010_SP1, this.getClass().getName());
 
 		if (lifetime < 1 || lifetime > 30) {
 			throw new ArgumentOutOfRangeException("lifetime");
@@ -201,103 +201,102 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 		this.session = service;
 		this.subscriptions = new HashMap<String, StreamingSubscription>();
 		this.connectionTimeout = lifetime;
-			}
-
+	}
 
 	/**
-	 *  Initializes a new instance of the StreamingSubscriptionConnection class.
-	 *  @param service The ExchangeService instance this 
-	 *  connection uses to connect to the server.
-	 *  @param subscriptions Iterable subcriptions
-	 *  @param lifetime The maximum time, in minutes, the connection
-	 *   will remain open. Lifetime must be between 1 and 30.
-	 * @throws Exception 
+	 * Initializes a new instance of the StreamingSubscriptionConnection class.
+	 * 
+	 * @param service
+	 *            The ExchangeService instance this connection uses to connect
+	 *            to the server.
+	 * @param subscriptions
+	 *            Iterable subcriptions
+	 * @param lifetime
+	 *            The maximum time, in minutes, the connection will remain open.
+	 *            Lifetime must be between 1 and 30.
+	 * @throws Exception
 	 */
-	public StreamingSubscriptionConnection(
-			ExchangeService service,
-			Iterable<StreamingSubscription> subscriptions,
-			int lifetime) throws Exception {
-		this(service, lifetime);	
+	public StreamingSubscriptionConnection(ExchangeService service,
+			Iterable<StreamingSubscription> subscriptions, int lifetime)
+			throws Exception {
+		this(service, lifetime);
 		EwsUtilities.validateParamCollection(subscriptions.iterator(),
 				"subscriptions");
-		for(StreamingSubscription subscription : subscriptions) {
+		for (StreamingSubscription subscription : subscriptions) {
 			this.subscriptions.put(subscription.getId(), subscription);
 		}
 	}
 
-
 	/**
 	 * Adds a subscription to this connection.
-	 * @param subscription The subscription to add.
-	 * @throws Exception 
-	 * @exception Thrown when AddSubscription is called while connected.
+	 * 
+	 * @param subscription
+	 *            The subscription to add.
+	 * @throws Exception
+	 * @exception Thrown
+	 *                when AddSubscription is called while connected.
 	 */
 	public void addSubscription(StreamingSubscription subscription)
-	throws Exception {
+			throws Exception {
 		this.throwIfDisposed();
 		EwsUtilities.validateParam(subscription, "subscription");
-		this.validateConnectionState(false, Strings.
-				CannotAddSubscriptionToLiveConnection);
+		this.validateConnectionState(false,
+				Strings.CannotAddSubscriptionToLiveConnection);
 
-		synchronized (this)
-		{
-			if (this.subscriptions.containsKey(subscription.getId()))
-			{
+		synchronized (this) {
+			if (this.subscriptions.containsKey(subscription.getId())) {
 				return;
 			}
 			this.subscriptions.put(subscription.getId(), subscription);
 		}
 	}
 
-
 	/**
 	 * Removes the specified streaming subscription from the connection.
-	 * @param subscription The subscription to remove.
-	 * @throws Exception 
-	 * @exception Thrown when RemoveSubscription is called while connected.
+	 * 
+	 * @param subscription
+	 *            The subscription to remove.
+	 * @throws Exception
+	 * @exception Thrown
+	 *                when RemoveSubscription is called while connected.
 	 */
-	public void removeSubscription(StreamingSubscription subscription) 
-	throws Exception {
+	public void removeSubscription(StreamingSubscription subscription)
+			throws Exception {
 		this.throwIfDisposed();
 
 		EwsUtilities.validateParam(subscription, "subscription");
 
-		this.validateConnectionState(false, Strings.
-				CannotRemoveSubscriptionFromLiveConnection);
+		this.validateConnectionState(false,
+				Strings.CannotRemoveSubscriptionFromLiveConnection);
 
-		synchronized (this)
-		{
+		synchronized (this) {
 			this.subscriptions.remove(subscription.getId());
 		}
 	}
 
-
 	/**
-	 * Opens this connection so it starts receiving events
-	 *  from the server.This results in a long-standing call to EWS.
-	 * @throws Exception 
-	 * @throws ServiceLocalException 
-	 * @exception Thrown when Open is called while connected.
+	 * Opens this connection so it starts receiving events from the server.This
+	 * results in a long-standing call to EWS.
+	 * 
+	 * @throws Exception
+	 * @throws ServiceLocalException
+	 * @exception Thrown
+	 *                when Open is called while connected.
 	 */
-	public void open() throws ServiceLocalException, Exception
-	{
-		synchronized (this)
-		{
+	public void open() throws ServiceLocalException, Exception {
+		synchronized (this) {
 			this.throwIfDisposed();
 
-			this.validateConnectionState(false, Strings.
-					CannotCallConnectDuringLiveConnection);
+			this.validateConnectionState(false,
+					Strings.CannotCallConnectDuringLiveConnection);
 
-			if (this.subscriptions.size() == 0)
-			{
-				throw new ServiceLocalException(Strings.
-						NoSubscriptionsOnConnection);
+			if (this.subscriptions.size() == 0) {
+				throw new ServiceLocalException(
+						Strings.NoSubscriptionsOnConnection);
 			}
 
 			this.currentHangingRequest = new GetStreamingEventsRequest(
-					this.session,
-					this,
-					this.subscriptions.keySet(),
+					this.session, this, this.subscriptions.keySet(),
 					this.connectionTimeout);
 
 			this.currentHangingRequest.addOnDisconnectEvent(this);
@@ -306,38 +305,38 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 		}
 	}
 
-
 	/**
 	 * Called when the request is disconnected.
-	 * @param sender The sender.
-	 * @param args The Microsoft.Exchange.WebServices.Data.
-	 * HangingRequestDisconnectEventArgs instance containing the event data.
+	 * 
+	 * @param sender
+	 *            The sender.
+	 * @param args
+	 *            The Microsoft.Exchange.WebServices.Data.
+	 *            HangingRequestDisconnectEventArgs instance containing the
+	 *            event data.
 	 */
-	private void onRequestDisconnect(Object sender, 
-			HangingRequestDisconnectEventArgs args)
-	{
+	private void onRequestDisconnect(Object sender,
+			HangingRequestDisconnectEventArgs args) {
 		this.internalOnDisconnect(args.getException());
 	}
 
-
 	/**
-	 * Closes this connection so it stops receiving events 
-	 * from the server.This terminates a long-standing call to EWS.
-	 * @exception Thrown when Close is called while not connected.
+	 * Closes this connection so it stops receiving events from the server.This
+	 * terminates a long-standing call to EWS.
+	 * 
+	 * @exception Thrown
+	 *                when Close is called while not connected.
 	 */
-	public void close()
-	{
-		synchronized (this)
-		{
+	public void close() {
+		synchronized (this) {
 			try {
 				this.throwIfDisposed();
 
-
-				this.validateConnectionState(true, Strings.
-						CannotCallDisconnectWithNoLiveConnection);
+				this.validateConnectionState(true,
+						Strings.CannotCallDisconnectWithNoLiveConnection);
 
 				// Further down in the stack, this will result in a
-				//call to our OnRequestDisconnect event handler,
+				// call to our OnRequestDisconnect event handler,
 				// doing the necessary cleanup.
 				this.currentHangingRequest.disconnect();
 			} catch (Exception e) {
@@ -346,13 +345,13 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 		}
 	}
 
-
 	/**
 	 * Internal helper method called when the request disconnects.
-	 * @param ex The exception that caused the disconnection. May be null.
+	 * 
+	 * @param ex
+	 *            The exception that caused the disconnection. May be null.
 	 */
-	private void internalOnDisconnect(Exception ex)
-	{
+	private void internalOnDisconnect(Exception ex) {
 		if (!onDisconnect.isEmpty()) {
 			for (ISubscriptionErrorDelegate disconnect : onDisconnect) {
 				disconnect.subscriptionErrorDelegate(this,
@@ -364,81 +363,65 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 
 	/**
 	 * Gets a value indicating whether this connection is opened
-	 * @throws Exception 
+	 * 
+	 * @throws Exception
 	 */
-	public boolean getIsOpen() throws Exception
-	{
+	public boolean getIsOpen() throws Exception {
 
 		this.throwIfDisposed();
-		if (this.currentHangingRequest == null)
-		{
+		if (this.currentHangingRequest == null) {
 			return false;
-		}
-		else
-		{
+		} else {
 			return this.currentHangingRequest.isConnected();
 		}
 
 	}
 
-
 	/**
 	 * Validates the state of the connection.
-	 * @param isConnectedExpected Value indicating whether we expect to be currently connected.
-	 * @param errorMessage The error message.
-	 * @throws Exception 
+	 * 
+	 * @param isConnectedExpected
+	 *            Value indicating whether we expect to be currently connected.
+	 * @param errorMessage
+	 *            The error message.
+	 * @throws Exception
 	 */
 	private void validateConnectionState(boolean isConnectedExpected,
-			String errorMessage) throws Exception
-	{
-		if ((isConnectedExpected && !this.getIsOpen()) ||
-				(!isConnectedExpected && this.getIsOpen()))
-		{
+			String errorMessage) throws Exception {
+		if ((isConnectedExpected && !this.getIsOpen())
+				|| (!isConnectedExpected && this.getIsOpen())) {
 			throw new ServiceLocalException(errorMessage);
 		}
 	}
 
-
 	/**
 	 * Handles the service response object.
-	 * @param response The response.
-	 * @throws ArgumentException 
+	 * 
+	 * @param response
+	 *            The response.
+	 * @throws ArgumentException
 	 */
 	private void handleServiceResponseObject(Object response)
-	throws ArgumentException
-	{
-		GetStreamingEventsResponse gseResponse = 
-			(GetStreamingEventsResponse)response ;
+			throws ArgumentException {
+		GetStreamingEventsResponse gseResponse = (GetStreamingEventsResponse) response;
 
-		if (gseResponse == null)
-		{
+		if (gseResponse == null) {
 			throw new ArgumentException();
-		}
-		else
-		{
-			if (gseResponse.getResult() == ServiceResult.Success || 
-					gseResponse.getResult() == ServiceResult.Warning)
-			{
-				if (gseResponse.getResults().getNotifications().size() > 0)
-				{
+		} else {
+			if (gseResponse.getResult() == ServiceResult.Success
+					|| gseResponse.getResult() == ServiceResult.Warning) {
+				if (gseResponse.getResults().getNotifications().size() > 0) {
 					// We got notifications; dole them out.
 					this.issueNotificationEvents(gseResponse);
+				} else {
+					// // This was just a heartbeat, nothing to do here.
 				}
-				else
-				{
-					//// This was just a heartbeat, nothing to do here.
-				}
-			}
-			else if (gseResponse.getResult() == ServiceResult.Error)
-			{
-				if (gseResponse.getErrorSubscriptionIds() == null ||
-						gseResponse.getErrorSubscriptionIds().size() == 0)
-				{
+			} else if (gseResponse.getResult() == ServiceResult.Error) {
+				if (gseResponse.getErrorSubscriptionIds() == null
+						|| gseResponse.getErrorSubscriptionIds().size() == 0) {
 					// General error
 					this.issueGeneralFailure(gseResponse);
-				}
-				else
-				{
+				} else {
 					// subscription-specific errors
 					this.issueSubscriptionFailures(gseResponse);
 				}
@@ -446,62 +429,62 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 		}
 	}
 
-
 	/**
 	 * Issues the subscription failures.
-	 * @param gseResponse The GetStreamingEvents response.
+	 * 
+	 * @param gseResponse
+	 *            The GetStreamingEvents response.
 	 */
-	private void issueSubscriptionFailures(GetStreamingEventsResponse 
-			gseResponse)
-	{
-		ServiceResponseException exception = 
-			new ServiceResponseException(gseResponse);
+	private void issueSubscriptionFailures(
+			GetStreamingEventsResponse gseResponse) {
+		ServiceResponseException exception = new ServiceResponseException(
+				gseResponse);
 
-		for(String id : gseResponse.getErrorSubscriptionIds())
-		{
-			StreamingSubscription subscription;
+		for (String id : gseResponse.getErrorSubscriptionIds()) {
+			StreamingSubscription subscription = null;
 
-			synchronized (this.subscriptions)
-			{
-				EwsUtilities.EwsAssert(
-						this.subscriptions.containsKey(id),
-						"StreamingSubscriptionConnection." +
-						"IssueSubscriptionFailures",
-				"Got a subscription id for a subscription " +
-				"not on the connection's list.");
+			synchronized (this) {
+				// Client can do any good or bad things in the below event
+				// handler
+				if (this.subscriptions != null
+						&& this.subscriptions.containsKey(id)) {
+					subscription = this.subscriptions.get(id);
+				}
 
-				subscription = this.subscriptions.get(id);
 			}
+			if (subscription != null) {
+				SubscriptionErrorEventArgs eventArgs = new SubscriptionErrorEventArgs(
+						subscription, exception);
 
-			SubscriptionErrorEventArgs eventArgs =
-				new SubscriptionErrorEventArgs(
-					subscription,
-					exception);
-
-			if (!onSubscriptionError.isEmpty()) {
-				for (ISubscriptionErrorDelegate subError : onSubscriptionError) {
-					subError.subscriptionErrorDelegate(this, eventArgs);
+				if (!onSubscriptionError.isEmpty()) {
+					for (ISubscriptionErrorDelegate subError : onSubscriptionError) {
+						subError.subscriptionErrorDelegate(this, eventArgs);
+					}
 				}
 			}
-
-			if (gseResponse.getErrorCode() != ServiceError.ErrorMissedNotificationEvents)	
-			{
-				// We are no longer servicing the subscription.
-				this.subscriptions.remove(id);
+			if (gseResponse.getErrorCode() != ServiceError.ErrorMissedNotificationEvents) {
+				// Client can do any good or bad things in the above event
+				// handler
+				synchronized (this) {
+					if (this.subscriptions != null
+							&& this.subscriptions.containsKey(id)) {
+						// We are no longer servicing the subscription.
+						this.subscriptions.remove(id);
+					}
+				}
 			}
 		}
 	}
 
-
 	/**
 	 * Issues the general failure.
-	 * @param gseResponse The GetStreamingEvents response.
+	 * 
+	 * @param gseResponse
+	 *            The GetStreamingEvents response.
 	 */
-	private void issueGeneralFailure(GetStreamingEventsResponse gseResponse)
-	{
+	private void issueGeneralFailure(GetStreamingEventsResponse gseResponse) {
 		SubscriptionErrorEventArgs eventArgs = new SubscriptionErrorEventArgs(
-				null,
-				new ServiceResponseException(gseResponse));
+				null, new ServiceResponseException(gseResponse));
 
 		if (!onSubscriptionError.isEmpty()) {
 			for (ISubscriptionErrorDelegate subError : onSubscriptionError) {
@@ -512,33 +495,34 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 
 	/**
 	 * Issues the notification events.
-	 * @param gseResponse The GetStreamingEvents response.
+	 * 
+	 * @param gseResponse
+	 *            The GetStreamingEvents response.
 	 */
-	private void issueNotificationEvents(GetStreamingEventsResponse gseResponse)
-	{
-		for(GetStreamingEventsResults.NotificationGroup events : gseResponse.getResults().getNotifications())
-		{
-			StreamingSubscription subscription;
+	private void issueNotificationEvents(GetStreamingEventsResponse gseResponse) {
+		
+		for (GetStreamingEventsResults.NotificationGroup events : gseResponse
+				.getResults().getNotifications()) {
+			StreamingSubscription subscription = null;
 
-			synchronized (this.subscriptions)
-			{
-				EwsUtilities.EwsAssert(
-						this.subscriptions.containsKey(events.subscriptionId),
-						"StreamingSubscriptionConnection." +
-						"IssueNotificationEvents",
-				"Got a subscription id for a subscription " +
-				"not on the connection's list.");
-
-				subscription = this.subscriptions.get(events.subscriptionId);
+			synchronized (this) {
+				// Client can do any good or bad things in the below event
+				// handler
+				if (this.subscriptions != null
+						&& this.subscriptions
+								.containsKey(events.subscriptionId)) {
+					subscription = this.subscriptions
+							.get(events.subscriptionId);
+				}
 			}
+			if (subscription != null) {
+				NotificationEventArgs eventArgs = new NotificationEventArgs(
+						subscription, events.events);
 
-			NotificationEventArgs eventArgs = new NotificationEventArgs(
-					subscription,
-					events.events);
-
-			if (!onNotificationEvent.isEmpty()) {
-				for (INotificationEventDelegate notifyEvent : onNotificationEvent) {
-					notifyEvent.notificationEventDelegate(this, eventArgs);
+				if (!onNotificationEvent.isEmpty()) {
+					for (INotificationEventDelegate notifyEvent : onNotificationEvent) {
+						notifyEvent.notificationEventDelegate(this, eventArgs);
+					}
 				}
 			}
 		}
@@ -555,32 +539,27 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 	/**
 	 * Frees resources associated with this StreamingSubscriptionConnection.
 	 */
-	public void dispose()
-	{
+	public void dispose() {
 		this.dispose(true);
 	}
 
-
 	/**
-	 * Performs application-defined tasks associated 
-	 * with freeing, releasing, or resetting unmanaged resources.
-	 * @param suppressFinalizer Value indicating whether to 
-	 * suppress the garbage collector's finalizer.
+	 * Performs application-defined tasks associated with freeing, releasing, or
+	 * resetting unmanaged resources.
+	 * 
+	 * @param suppressFinalizer
+	 *            Value indicating whether to suppress the garbage collector's
+	 *            finalizer.
 	 */
 	@SuppressWarnings("deprecation")
-	private void dispose(boolean suppressFinalizer)
-	{
-		if (suppressFinalizer)
-		{
+	private void dispose(boolean suppressFinalizer) {
+		if (suppressFinalizer) {
 			System.runFinalizersOnExit(false);
 		}
 
-		synchronized (this)
-		{
-			if (!this.isDisposed)
-			{
-				if (this.currentHangingRequest != null)
-				{
+		synchronized (this) {
+			if (!this.isDisposed) {
+				if (this.currentHangingRequest != null) {
 					this.currentHangingRequest = null;
 				}
 
@@ -594,19 +573,18 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 
 	/**
 	 * Throws if disposed.
-	 * @throws Exception 
+	 * 
+	 * @throws Exception
 	 */
-	private void throwIfDisposed() throws Exception
-	{
-		if (this.isDisposed)
-		{
+	private void throwIfDisposed() throws Exception {
+		if (this.isDisposed) {
 			throw new Exception(this.getClass().getName());
 		}
 	}
 
 	@Override
 	public void handleResponseObject(Object response) throws ArgumentException {
-		this.handleServiceResponseObject(response);		
+		this.handleServiceResponseObject(response);
 	}
 
 	@Override
@@ -615,7 +593,4 @@ HangingServiceRequestBase.IHangingRequestDisconnectHandler{
 		this.onRequestDisconnect(sender, args);
 	}
 
-
 }
-
-

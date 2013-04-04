@@ -307,6 +307,15 @@ public final class PropertySet implements ISelfValidate,
 		return this.basePropertySet;
 	}
 
+	/**
+	 * *Maps BasePropertySet values to EWS's BaseShape values.
+	 * 
+	 * @return the base property set
+	 */
+	public static LazyMember<Map<BasePropertySet, String>> getDefaultPropertySetMap() {
+	 return PropertySet.defaultPropertySetMap;
+	
+	}
 	/***
 	 * Sets the base property set, the property set is based upon.
 	 * 

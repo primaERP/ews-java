@@ -433,8 +433,8 @@ public class Contact extends Item {
 	 * @throws ServiceLocalException
 	 *             the service local exception
 	 */
-	public String getCompleteName() throws ServiceLocalException {
-		return (String) this.getPropertyBag().getObjectFromPropertyDefinition(
+	public CompleteName getCompleteName() throws ServiceLocalException {
+		return (CompleteName) this.getPropertyBag().getObjectFromPropertyDefinition(
 				ContactSchema.CompleteName);
 	}
 
@@ -956,4 +956,108 @@ public class Contact extends Item {
 		return (Boolean) getPropertyBag().getObjectFromPropertyDefinition(
 				ContactSchema.HasPicture);
 	}
+	/**
+	 * Gets the funn phonetic name from the directory
+	 * 
+	 */
+	public String getPhoneticFullName() throws Exception{
+		return (String)this.getPropertyBag().getObjectFromPropertyDefinition(ContactSchema.PhoneticFullName);
+	}
+	
+	/**
+	 * Gets the funn phonetic name from the directory
+	 * 
+	 */
+	public String getPhoneticFirstName() throws Exception{
+		return (String)this.getPropertyBag().getObjectFromPropertyDefinition(ContactSchema.PhoneticFirstName);
+	}
+	
+	/** 
+     * Gets the phonetic last name from the directory
+	 * @throws ServiceLocalException 
+     */
+    public String getPhoneticLastName() throws ServiceLocalException
+    {
+         return (String) this.getPropertyBag().getObjectFromPropertyDefinition(ContactSchema.PhoneticLastName);
+    }
+
+    /** 
+     * Gets the Alias from the directory
+     * @throws ServiceLocalException 
+     */ 
+    public String getAlias() throws ServiceLocalException
+    {
+          return (String) this.getPropertyBag().getObjectFromPropertyDefinition(ContactSchema.Alias); 
+    }
+
+    /** 
+     * Get the Notes from the directory
+     * @throws ServiceLocalException 
+     */
+    public String getNotes() throws ServiceLocalException
+    {
+      return (String) this.getPropertyBag().getObjectFromPropertyDefinition(ContactSchema.Notes);
+    }
+
+    /** 
+     * Gets the Photo from the directory
+     * @throws ServiceLocalException 
+     */
+    public byte[] getDirectoryPhoto() throws ServiceLocalException
+    {
+         return (byte[]) this.getPropertyBag().getObjectFromPropertyDefinition(ContactSchema.Photo);
+    }
+
+    /** 
+     * Gets the User SMIME certificate from the directory
+     * @throws ServiceLocalException 
+     */
+    public byte[][] getUserSMIMECertificate() throws ServiceLocalException
+    {
+       
+        { 
+            ByteArrayArray array = (ByteArrayArray)this.getPropertyBag().getObjectFromPropertyDefinition(ContactSchema.UserSMIMECertificate);
+            return array.getContent();
+        }
+    }
+
+    /** 
+     * Gets the MSExchange certificate from the directory
+     * @throws ServiceLocalException 
+     */
+    public byte[][] getMSExchangeCertificate() throws ServiceLocalException
+    {
+         
+        { 
+            ByteArrayArray array = (ByteArrayArray)this.getPropertyBag().getObjectFromPropertyDefinition(ContactSchema.MSExchangeCertificate);
+            return array.getContent();
+        }
+    }
+
+    /** 
+     * Gets the DirectoryID as Guid or DN string
+     * @throws ServiceLocalException 
+     */
+    public String getDirectoryId() throws ServiceLocalException
+    {
+      return (String)this.getPropertyBag().getObjectFromPropertyDefinition(ContactSchema.DirectoryId);
+    }
+    
+    /**
+     * Gets the manager mailbox information
+     * @throws ServiceLocalException 
+     */
+    public EmailAddress getManagerMailbox() throws ServiceLocalException
+    {
+      return (EmailAddress)this.getPropertyBag().getObjectFromPropertyDefinition(ContactSchema.ManagerMailbox);
+    }
+
+    /**
+     * Get the direct reports mailbox information
+     * @throws ServiceLocalException 
+     */
+    public EmailAddressCollection getDirectReports() throws ServiceLocalException
+    {
+        return (EmailAddressCollection)this.getPropertyBag().getObjectFromPropertyDefinition(ContactSchema.DirectReports);
+    }
 }

@@ -14,7 +14,7 @@ import javax.xml.stream.XMLStreamException;
  * specific month.
  */
 class AbsoluteDayOfMonthTransition extends AbsoluteMonthTransition {
-	
+
 	/** The day of month. */
 	private int dayOfMonth;
 
@@ -46,8 +46,8 @@ class AbsoluteDayOfMonthTransition extends AbsoluteMonthTransition {
 			if (reader.getLocalName().equals(XmlElementNames.Day)) {
 				this.dayOfMonth = reader.readElementValue(Integer.class);
 
-				EwsUtilities.EwsAssert(this.dayOfMonth > 0 &&
-						 this.dayOfMonth <= 31,
+				EwsUtilities.EwsAssert(this.dayOfMonth > 0
+						&& this.dayOfMonth <= 31,
 						"AbsoluteDayOfMonthTransition.TryReadElementFromXml",
 						"dayOfMonth is not in the valid 1 - 31 range.");
 
@@ -73,10 +73,8 @@ class AbsoluteDayOfMonthTransition extends AbsoluteMonthTransition {
 			throws ServiceXmlSerializationException, XMLStreamException {
 		super.writeElementsToXml(writer);
 
-		writer.writeElementValue(
-			XmlNamespace.Types, 
-			XmlElementNames.Day,
-			this.dayOfMonth);
+		writer.writeElementValue(XmlNamespace.Types, XmlElementNames.Day,
+				this.dayOfMonth);
 	}
 
 	/**
@@ -85,8 +83,7 @@ class AbsoluteDayOfMonthTransition extends AbsoluteMonthTransition {
 	 * @param timeZoneDefinition
 	 *            the time zone definition
 	 */
-	protected AbsoluteDayOfMonthTransition(TimeZoneDefinition 
-			timeZoneDefinition) {
+	protected AbsoluteDayOfMonthTransition(TimeZoneDefinition timeZoneDefinition) {
 		super(timeZoneDefinition);
 	}
 
@@ -100,14 +97,13 @@ class AbsoluteDayOfMonthTransition extends AbsoluteMonthTransition {
 	 */
 
 	protected AbsoluteDayOfMonthTransition(
-			TimeZoneDefinition timeZoneDefinition, 
-			TimeZonePeriod targetPeriod) {
+			TimeZoneDefinition timeZoneDefinition, TimeZonePeriod targetPeriod) {
 		super(timeZoneDefinition, targetPeriod);
 	}
 
 	/**
 	 * Gets the day of then month when this transition occurs.
-	 *
+	 * 
 	 * @return the day of month
 	 */
 	protected int getDayOfMonth() {

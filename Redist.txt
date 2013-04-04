@@ -1,8 +1,7 @@
-Distributable Code is identified as the following files:
-
 AbsoluteDateTransition.java
 AbsoluteDayOfMonthTransition.java
 AbsoluteMonthTransition.java
+AbstractAsyncCallback.java
 AbstractFolderIdWrapper.java
 AbstractItemIdWrapper.java
 AcceptMeetingInvitationMessage.java
@@ -16,6 +15,7 @@ AlternateMailbox.java
 AlternateMailboxCollection.java
 AlternatePublicFolderId.java
 AlternatePublicFolderItemId.java
+AmbiguousName.java
 ApplyConversationActionRequest.java
 Appointment.java
 AppointmentOccurrenceId.java
@@ -24,15 +24,19 @@ AppointmentType.java
 ArgumentException.java
 ArgumentNullException.java
 ArgumentOutOfRangeException.java
+AsyncCallback.java
+AsyncCallbackImplementation.java
+AsyncExecutor.java
+AsyncRequestResult.java
 Attachable.java
 Attachment.java
 AttachmentCollection.java
+AttachmentsPropertyDefinition.java
 Attendee.java
 AttendeeAvailability.java
 AttendeeCollection.java
 AttendeeInfo.java
 AutodiscoverDnsClient.java
-AutodiscoverDnsClientTest.java
 AutodiscoverEndpoints.java
 AutodiscoverError.java
 AutodiscoverErrorCode.java
@@ -51,6 +55,7 @@ Base64EncoderStream.java
 BasePropertySet.java
 BodyType.java
 BoolPropertyDefinition.java
+ByteArrayArray.java
 ByteArrayOSRequestEntity.java
 ByteArrayPropertyDefinition.java
 CalendarActionResults.java
@@ -61,6 +66,9 @@ CalendarResponseMessage.java
 CalendarResponseMessageBase.java
 CalendarResponseObjectSchema.java
 CalendarView.java
+CallableMethod.java
+CallableSingleTon.java
+Callback.java
 CancelMeetingMessage.java
 CancelMeetingMessageSchema.java
 Change.java
@@ -70,6 +78,7 @@ ClientCertificateCredentials.java
 ComparisonHelpers.java
 ComparisonMode.java
 CompleteName.java
+ComplexFunctionDelegate.java
 ComplexProperty.java
 ComplexPropertyCollection.java
 ComplexPropertyDefinition.java
@@ -109,11 +118,14 @@ CreateItemRequest.java
 CreateItemRequestBase.java
 CreateItemResponse.java
 CreateItemResponseBase.java
+CreateMeetingRequest.java
 CreateRequest.java
 CreateResponseObjectRequest.java
 CreateResponseObjectResponse.java
 CreateRuleOperation.java
 CreateUserConfigurationRequest.java
+CredentialConstants.java
+DateTimePrecision.java
 DateTimePropertyDefinition.java
 DayOfTheWeek.java
 DayOfTheWeekCollection.java
@@ -175,7 +187,6 @@ EwsTraceListener.java
 EwsUtilities.java
 EwsX509TrustManager.java
 EwsXmlReader.java
-ExampleTest.java
 ExchangeCredentials.java
 ExchangeServerInfo.java
 ExchangeService.java
@@ -191,6 +202,7 @@ ExtendedPropertyCollection.java
 ExtendedPropertyDefinition.java
 FileAsMapping.java
 FileAttachment.java
+files.txt
 FindConversationRequest.java
 FindConversationResponse.java
 FindFolderRequest.java
@@ -241,6 +253,8 @@ GetItemRequest.java
 GetItemRequestBase.java
 GetItemRequestForLoad.java
 GetItemResponse.java
+GetPasswordExpirationDateRequest.java
+GetPasswordExpirationDateResponse.java
 GetPhoneCallRequest.java
 GetPhoneCallResponse.java
 GetRequest.java
@@ -250,6 +264,7 @@ GetRoomsRequest.java
 GetRoomsResponse.java
 GetServerTimeZonesRequest.java
 GetServerTimeZonesResponse.java
+GetStream.java
 GetStreamingEventsRequest.java
 GetStreamingEventsResponse.java
 GetStreamingEventsResults.java
@@ -270,9 +285,11 @@ GroupMemberPropertyDefinition.java
 HangingServiceRequestBase.java
 HangingTraceStream.java
 HttpClientWebRequest.java
+HttpErrorException.java
 HttpProxyCredentials.java
 HttpWebRequest.java
 IAction.java
+IAsyncResult.java
 IAutodiscoverRedirectionUrl.java
 ICalendarActionProvider.java
 IComplexPropertyChanged.java
@@ -445,6 +462,9 @@ RulePredicateDateRange.java
 RulePredicates.java
 RulePredicateSizeRange.java
 RuleProperty.java
+SafeXmlDocument.java
+SafeXmlFactory.java
+SafeXmlSchema.java
 Schema.java
 SearchFilter.java
 SearchFolder.java
@@ -535,6 +555,7 @@ TypedPropertyDefinition.java
 UnifiedMessaging.java
 UniqueBody.java
 UnsubscribeRequest.java
+UpdateContactGroupTest.java
 UpdateDelegateRequest.java
 UpdateFolderRequest.java
 UpdateFolderResponse.java
@@ -543,6 +564,7 @@ UpdateInboxRulesRequest.java
 UpdateInboxRulesResponse.java
 UpdateItemRequest.java
 UpdateItemResponse.java
+UpdateMeetingRequest.java
 UpdateUserConfigurationRequest.java
 UserConfiguration.java
 UserConfigurationDictionary.java
@@ -552,9 +574,12 @@ UserId.java
 UserSettingError.java
 UserSettingName.java
 ViewBase.java
+WaitHandle.java
+WebAsyncCallStateAnchor.java
 WebClientUrl.java
 WebClientUrlCollection.java
 WebCredentials.java
+WebExceptionStatus.java
 WebProxy.java
 WellKnownFolderName.java
 WindowsLiveCredentials.java
@@ -562,7 +587,9 @@ WorkingHours.java
 WorkingPeriod.java
 WSSecurityBasedCredentials.java
 XmlAttributeNames.java
+XmlDtdException.java
 XmlElementNames.java
 XmlException.java
 XmlNamespace.java
+XmlNameTable.java
 XMLNodeType.java

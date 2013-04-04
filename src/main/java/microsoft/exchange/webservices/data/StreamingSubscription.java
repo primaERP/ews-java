@@ -31,6 +31,27 @@ public final class StreamingSubscription extends SubscriptionBase{
 	}
 
 	/**
+	 *  Begins an asynchronous request to unsubscribe from the streaming subscription. 
+	 * @param callback The AsyncCallback delegate.
+	 * @param state An object that contains state information for this request.
+	 * @return An IAsyncResult that references the asynchronous request.
+	 * @throws Exception 
+	 */
+    public IAsyncResult beginUnsubscribe(AsyncCallback callback, Object state) throws Exception
+    {
+        return this.getService().beginUnsubscribe(callback, state, this.getId());
+    }
+
+    /**
+     * Ends an asynchronous request to unsubscribe from the streaming subscription.
+     * @param asyncresult An IAsyncResult that references the asynchronous request.
+     * @throws Exception 
+     */
+    public void endUnsubscribe(IAsyncResult asyncResult) throws Exception
+    {
+        this.getService().endUnsubscribe(asyncResult);
+    }
+	/**
 	 * Gets the service used to create this subscription.
 	 */
 	public  ExchangeService getService() {

@@ -153,8 +153,10 @@ public abstract class ServiceObject {
 	 * @param isUpdateOperation
 	 *            the is update operation
 	 * @return boolean
+	 * @throws ServiceLocalException 
+	 * @throws Exception 
 	 */
-	protected boolean getIsTimeZoneHeaderRequired(boolean isUpdateOperation) {
+	protected boolean getIsTimeZoneHeaderRequired(boolean isUpdateOperation) throws ServiceLocalException, Exception {
 		return false;
 	}
 

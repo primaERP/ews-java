@@ -6,6 +6,7 @@
  **************************************************************************/
 package microsoft.exchange.webservices.data;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +15,9 @@ import java.util.List;
  * 
  * 
  */
+@SuppressWarnings("unchecked")
 @EditorBrowsable(state = EditorBrowsableState.Never)
-public abstract class ComplexProperty implements ISelfValidate {
+public abstract class ComplexProperty implements ISelfValidate,ComplexFunctionDelegate {
 
 	/** The xml namespace. */
 	private XmlNamespace xmlNamespace = XmlNamespace.Types;
@@ -131,6 +133,19 @@ public abstract class ComplexProperty implements ISelfValidate {
 		return false;
 	}
 
+	/** 
+     *  Tries to read element from XML to patch this property.
+     * 
+     * @param reader The reader. 
+     *  True if element was read.
+     * 
+     * */
+     
+    protected boolean tryReadElementFromXmlToPatch(EwsServiceXmlReader reader) throws Exception
+    {
+        return false;
+    }
+	
 	/**
 	 * * Writes the attributes to XML.
 	 * 
@@ -170,7 +185,82 @@ public abstract class ComplexProperty implements ISelfValidate {
 	protected void loadFromXml(EwsServiceXmlReader reader,
 			XmlNamespace xmlNamespace, String xmlElementName) throws Exception {
 
+		/*reader.ensureCurrentNodeIsStartElement(xmlNamespace, xmlElementName);
+		this.readAttributesFromXml(reader);
+
+		if (!reader.isEmptyElement()) {
+			do {
+				reader.read();
+
+				switch (reader.getNodeType().nodeType) {
+				case XMLNodeType.START_ELEMENT:
+					if (!this.tryReadElementFromXml(reader)) {
+						reader.skipCurrentElement();
+					}
+					break;
+				case XMLNodeType.CHARACTERS:
+					this.readTextValueFromXml(reader);
+					break;
+				}
+			} while (!reader.isEndElement(xmlNamespace, xmlElementName));
+		} else {
+			// Adding this code to skip the END_ELEMENT of an Empty Element.
+			reader.read();
+			reader.isEndElement(xmlNamespace, xmlElementName);
+		} */
+		
+		this.internalLoadFromXml(reader, xmlNamespace, xmlElementName, false);
+                   
+        		
+	}
+	
+	 /**  
+      * Loads from XML to update this property.
+      * 
+      *@param reader The reader. 
+      *@param xmlElementName Name of the XML element. 
+	 * @throws Exception 
+      */
+	
+	protected  void updateFromXml(EwsServiceXmlReader reader, String xmlElementName) throws Exception
+ {
+		this.updateFromXml(reader, this.getNamespace(), xmlElementName);
+
+	}
+	
+	 /** 
+      * Loads from XML to update itself.
+      * 
+      *@param reader The reader. 
+      *@param xmlNamespace The XML namespace. 
+      *@param xmlElementName Name of the XML element. 
+	 * @param complexFunctionDelegate 
+      */
+    protected  void updateFromXml(
+        EwsServiceXmlReader reader,
+        XmlNamespace xmlNamespace,
+        String xmlElementName) throws Exception
+ {
+		this.internalupdateLoadFromXml(reader, xmlNamespace, xmlElementName,
+				false);
+	}
+
+    /**
+     * 
+     *  Loads from XML
+     *@param reader The Reader.
+     *@param xmlNamespace The Xml NameSpace.
+     *@param xmlElementName  The Xml ElementName
+     *@param readAction   The Reade Action.
+     */
+    private void internalLoadFromXml(
+        EwsServiceXmlReader reader,
+        XmlNamespace xmlNamespace,
+        String xmlElementName,          
+        boolean readValue)throws Exception
+ {
 		reader.ensureCurrentNodeIsStartElement(xmlNamespace, xmlElementName);
+
 		this.readAttributesFromXml(reader);
 
 		if (!reader.isEmptyElement()) {
@@ -193,8 +283,42 @@ public abstract class ComplexProperty implements ISelfValidate {
 			reader.read();
 			reader.isEndElement(xmlNamespace, xmlElementName);
 		}
-	}
+	} 
+        
+        
+    
+    
+    
+    
+    private void internalupdateLoadFromXml(
+            EwsServiceXmlReader reader,
+            XmlNamespace xmlNamespace,
+            String xmlElementName,          
+            boolean readValue)throws Exception
+ {
+		reader.ensureCurrentNodeIsStartElement(xmlNamespace, xmlElementName);
 
+		this.readAttributesFromXml(reader);
+
+		if (!reader.isEmptyElement()) {
+			do {
+				reader.read();
+
+				switch (reader.getNodeType().nodeType) {
+				case XMLNodeType.START_ELEMENT:
+					if (!this.tryReadElementFromXmlToPatch(reader)) {
+						reader.skipCurrentElement();
+					}
+					break;
+				case XMLNodeType.CHARACTERS:
+					this.readTextValueFromXml(reader);
+					break;
+				}
+			} while (!reader.isEndElement(xmlNamespace, xmlElementName));
+		}
+	}
+   
+    
 	/**
 	 * * Loads from XML.
 	 * 
@@ -304,4 +428,14 @@ public abstract class ComplexProperty implements ISelfValidate {
 	protected void internalValidate() 
 	throws ServiceValidationException, Exception {
 	}
+	
+	
+	public Boolean func(EwsServiceXmlReader reader)
+	 throws Exception {
+		if (!this.tryReadElementFromXml(reader)) 
+			return true;
+		else return false;
+	
+	}
+		
 }

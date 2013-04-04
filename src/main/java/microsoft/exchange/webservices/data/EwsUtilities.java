@@ -6,8 +6,14 @@
  **************************************************************************/
 package microsoft.exchange.webservices.data;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.net.URISyntaxException;
@@ -65,6 +71,12 @@ class EwsUtilities {
 
 	/** The Constant AutodiscoverSoapNamespacePrefix. */
 	protected static final String AutodiscoverSoapNamespacePrefix = "a";
+	
+	/** The Constant WSSecurityUtilityNamespacePrefix. */
+	protected static final String WSSecurityUtilityNamespacePrefix = "wsu";
+	
+	/** The Constant WSSecuritySecExtNamespacePrefix. */
+	protected static final String WSSecuritySecExtNamespacePrefix = "wsse";
 
 	/** The Constant EwsTypesNamespace. */
 	protected static final String EwsTypesNamespace = 
@@ -106,6 +118,9 @@ class EwsUtilities {
 	/** The Constant AutodiscoverSoapNamespace. */
 	protected static final String AutodiscoverSoapNamespace = 
 		"http://schemas.microsoft.com/exchange/2010/Autodiscover";
+	
+	protected static final String WSSecurityUtilityNamespace = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
+	protected static final String WSSecuritySecExtNamespace = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
 
 	/** The service object info. */
 	private static LazyMember<ServiceObjectInfo> serviceObjectInfo = 
@@ -115,6 +130,62 @@ class EwsUtilities {
 					return new ServiceObjectInfo();
 				}
 			});
+	
+
+    /** 
+     *Copies source stream to target.
+     * 
+     *@param source The source. 
+     *@param name target The target.
+     **/ 
+    protected static void copyStream(ByteArrayOutputStream source, ByteArrayOutputStream target)throws Exception
+    {
+        // See if this is a MemoryStream -- we can use WriteTo.
+    	
+    	
+   /* 	InputStream inputStream = new FileInputStream ("D:\\EWS ManagedAPI sp2\\Rp\\xml\\useravailrequest.xml");
+    	
+    	 byte buf[]=new byte[1024];
+    	 int len;
+    	 while((len=inputStream.read(buf))>0)
+    	 {
+    	  target.write(buf,0, len);
+    	 }
+    	*/
+    	
+    	/*PrintWriter pw = new PrintWriter(source,true);
+    	PrintWriter pw1 = new PrintWriter(target,true);
+    	pw1.println(pw.toString());*/
+
+
+    	
+    	 
+    	 
+    	
+
+    	
+        ByteArrayOutputStream memContentStream = source;
+        if (memContentStream != null)
+        {
+            memContentStream.writeTo(target);
+            memContentStream.flush();
+        }
+        else
+        {
+            // Otherwise, copy data through a buffer
+            
+            int c;
+            ByteArrayInputStream inStream = new ByteArrayInputStream(source.toByteArray());
+            
+            while ((c=inStream.read())!= -1)
+            {
+                target.write((char)c);
+                
+            }
+        }
+    }
+	
+	
 
 	/**
 	 * Gets the builds the version.
@@ -399,6 +470,24 @@ class EwsUtilities {
 			return null;
 		}
 	}
+	
+	/**  
+   * Gets the expected item type based on the local name.
+    /// </summary>
+    /// <param name="xmlElementName">The element name.</param>
+    /// <returns>The item type.</returns>
+     * 
+     */
+	
+	/**
+	 * 
+	 */
+    protected static Class getItemTypeFromXmlElementName(String xmlElementName)
+    {
+        
+       return  EwsUtilities.serviceObjectInfo.getMember().getXmlElementNameToServiceObjectClassMap().get(xmlElementName).getClass();
+         
+    }
 
 	/**
 	 * Finds the first item of type TItem (not a descendant type) in the

@@ -120,6 +120,20 @@ public final class FileAttachment extends Attachment {
 		return result;
 	}
 
+	
+	/**
+    * For FileAttachment, the only thing need to patch is the AttachmentId.
+    * 
+    *  @param reader  The reader.
+    *  @return   true if element was read 
+    *  */
+	@Override 
+    protected  boolean tryReadElementFromXmlToPatch(EwsServiceXmlReader reader) throws Exception
+    {
+        return super.tryReadElementFromXml(reader);
+    }
+
+    
 	/**
 	 * * Writes elements and content to XML.
 	 * 

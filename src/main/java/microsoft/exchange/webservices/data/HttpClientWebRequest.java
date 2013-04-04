@@ -14,12 +14,17 @@ import java.io.OutputStream;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import javax.net.ssl.TrustManager;
 
+import org.apache.commons.httpclient.Cookie;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
@@ -51,6 +56,8 @@ class HttpClientWebRequest extends HttpWebRequest {
 	
 	private HttpConnectionManager simpleHttpConnMng = null;
 	
+	Cookie[] cookies = null;
+	
 	/**
 	 * Instantiates a new http native web request.
 	 */
@@ -63,6 +70,8 @@ class HttpClientWebRequest extends HttpWebRequest {
 	 */
 	@Override
 	public void close() {
+		ExecutorService es =(ExecutorService) CallableSingleTon.getExecutor();
+		es.shutdown();
 		if (null != httpMethod) {
 			httpMethod.releaseConnection();
 			//postMethod.abort();
@@ -105,6 +114,7 @@ class HttpClientWebRequest extends HttpWebRequest {
 		if(getUserName() != null) {
 		client.getState().setCredentials(AuthScope.ANY, new NTCredentials(getUserName(),getPassword(),"",getDomain()));
 		}
+		
 		client.getHttpConnectionManager().getParams().setSoTimeout(getTimeout());
 		client.getHttpConnectionManager().getParams().setConnectionTimeout(getTimeout());
 		httpMethod = new PostMethod(getUrl().toString()); 
@@ -113,7 +123,11 @@ class HttpClientWebRequest extends HttpWebRequest {
 		httpMethod.setRequestHeader("User-Agent", getUserAgent());		
 		httpMethod.setRequestHeader("Accept", getAccept());		
 		httpMethod.setRequestHeader("Keep-Alive", "300");		
-		httpMethod.setRequestHeader("Connection", "Keep-Alive");	
+		httpMethod.setRequestHeader("Connection", "Keep-Alive");
+		
+		if(this.cookies !=null && this.cookies.length > 0){
+			client.getState().addCookies(this.cookies);
+		}
 		//httpMethod.setFollowRedirects(isAllowAutoRedirect());
 
 		if (isAcceptGzipEncoding()) {
@@ -165,7 +179,36 @@ class HttpClientWebRequest extends HttpWebRequest {
 					+ this.getUrl());
 		}
 	}
+	
+	/**
+	 * Method for getting the cookie vlaues.
+	 * 
+	 * @throws EWSHttpException
+	 *             throws EWSHttpException
+	 */
+	public Cookie[] getCookies()   {
+		
+		return this.client.getState().getCookies();
 
+	}
+	
+	/**
+	 * Method for setting the cookie values.
+	 * 
+	 * @throws EWSHttpException
+	 *             throws EWSHttpException
+	 */
+	public void setUserCookie(Cookie[] rcookies) {
+
+		if (rcookies != null && rcookies.length > 0)
+			this.cookies = rcookies.clone();
+
+	}
+	
+	
+	
+	
+	
 	/**
 	 * Gets the input stream.
 	 * 
@@ -219,6 +262,7 @@ class HttpClientWebRequest extends HttpWebRequest {
 		OutputStream os = null;
 		throwIfConnIsNull();
 		os = new ByteArrayOutputStream();
+	
 		((EntityEnclosingMethod) httpMethod).setRequestEntity(new ByteArrayOSRequestEntity(os)); 
 		return os;
 	}
@@ -238,8 +282,21 @@ class HttpClientWebRequest extends HttpWebRequest {
 
 		Header[] hM = httpMethod.getResponseHeaders();
 		for (Header header : hM) {
-			map.put(header.getName(),header.getValue());
+			// RFC2109: Servers may return multiple Set-Cookie headers 
+			// Need to append the cookies before they are added to the map
+			if (header.getName().equals("Set-Cookie")) {
+				String cookieValue = "";
+				if (map.containsKey("Set-Cookie")) {
+					cookieValue += map.get("Set-Cookie");
+					cookieValue += ",";
+				}
+				cookieValue += header.getValue();
+				map.put("Set-Cookie", cookieValue);
+			}
+			else
+				map.put(header.getName(),header.getValue());
 		}
+			
 		return map;
 	}
 
@@ -297,6 +354,7 @@ class HttpClientWebRequest extends HttpWebRequest {
 	@Override
 	public int executeRequest() throws EWSHttpException, HttpException, IOException {
 		throwIfConnIsNull();
+		
 		return client.executeMethod(httpMethod);
 	}
 
@@ -370,5 +428,6 @@ class HttpClientWebRequest extends HttpWebRequest {
 	 */
 	public void setClientCertificates(TrustManager certs) throws EWSHttpException {
 		trustManger = certs;
+		
 	}
 }

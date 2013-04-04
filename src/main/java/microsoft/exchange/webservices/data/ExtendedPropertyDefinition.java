@@ -175,7 +175,7 @@ public final class ExtendedPropertyDefinition extends PropertyDefinitionBase {
 	 *            Second extended property definition.
 	 * @return True if extended property definitions are equal.
 	 */
-	protected static boolean isEqualTo(ExtendedPropertyDefinition extPropDef1,
+/*	protected static boolean isEqualTo(ExtendedPropertyDefinition extPropDef1,
 			ExtendedPropertyDefinition extPropDef2) {
 		return (extPropDef1 == extPropDef2) ||
 		 ((Object)extPropDef1 != null &&
@@ -187,6 +187,27 @@ public final class ExtendedPropertyDefinition extends PropertyDefinitionBase {
 				 extPropDef1.getPropertySet() == extPropDef2.getPropertySet() &&
 				  extPropDef1.propertySetId
 				.equals(extPropDef2.propertySetId));
+	}*/
+	
+	protected static boolean isEqualTo(ExtendedPropertyDefinition extPropDef1,
+			ExtendedPropertyDefinition extPropDef2) {
+		return (extPropDef1 == extPropDef2)
+				|| ((Object) extPropDef1 != null
+						&& (Object) extPropDef2 != null
+						&& ((extPropDef1.getId() == extPropDef2.getId()) || (extPropDef1
+								.getId() != null && extPropDef1.getId().equals(
+								extPropDef2.getId())))
+						&& extPropDef1.getMapiType() == extPropDef2
+								.getMapiType()
+						&& ((extPropDef1.getTag() == extPropDef2.getTag()) || (extPropDef1
+								.getTag() != null && extPropDef1.getTag()
+								.equals(extPropDef2.getTag())))
+						&& ((extPropDef1.getName() == extPropDef2.getName()) || (extPropDef1
+								.getName() != null && extPropDef1.getName()
+								.equals(extPropDef2.getName())))
+						&& extPropDef1.getPropertySet() == extPropDef2
+								.getPropertySet() && ((extPropDef1.propertySetId == extPropDef2.propertySetId) || (extPropDef1.propertySetId != null && extPropDef1.propertySetId
+						.equals(extPropDef2.propertySetId))));
 	}
 
 	/***

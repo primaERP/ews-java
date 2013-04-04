@@ -137,6 +137,50 @@ public class ContactSchema extends ItemSchema {
 
 		/** The Has picture. */
 		String HasPicture = "contacts:HasPicture";
+		
+		/** The PhoneticFullName. */
+		
+		String PhoneticFullName = "contacts:PhoneticFullName";
+		
+		/** The PhoneticFirstName. */
+		
+		String PhoneticFirstName = "contacts:PhonetiFirstName";
+		
+		/** The PhoneticFirstName. */
+		
+		String PhoneticLastName = "contacts:PhonetiLastName";
+		
+		/** The Aias. */
+		
+		String Alias = "contacts:Alias";
+		
+		/** The Notes. */
+		
+		String Notes = "contacts:Notes";
+		
+		/** The Photo. */
+		
+		String Photo = "contacts:Photo";
+		
+		/** The UserSMIMECertificate. */
+		
+		String UserSMIMECertificate = "contacts:UserSMIMECertificate";
+		
+		/** The MSExchangeCertificate. */
+		
+		String MSExchangeCertificate = "contacts:MSExchageCertificate";
+		
+		/** The DirectoryId. */
+		
+		String DirectoryId = "contacts:DirectoryId";
+		
+		/** The ManagerMailbox. */
+		
+		String ManagerMailbox = "contacts:ManagerMailbox";
+		
+		/** The DirectReports. */
+		
+		String DirectReports = "contacts:DirectReports";
 	}
 
 	/***
@@ -559,6 +603,137 @@ public class ContactSchema extends ItemSchema {
 			XmlElementNames.HasPicture, FieldUris.HasPicture, EnumSet
 					.of(PropertyDefinitionFlags.CanFind),
 			ExchangeVersion.Exchange2010);
+	/*** Defines PhoeniticFullName property ***/
+	
+	public static final PropertyDefinition PhoneticFullName = 
+		new StringPropertyDefinition(
+				XmlElementNames.PhoneticFullName,
+				FieldUris.PhoneticFullName,
+				EnumSet.of(PropertyDefinitionFlags.CanFind),
+				ExchangeVersion.Exchange2010_SP1);
+	
+	/*** Defines PhoenticFirstName property ***/
+	
+	public static final PropertyDefinition PhoneticFirstName = 
+		new StringPropertyDefinition(
+				XmlElementNames.PhoneticFirstName,
+				FieldUris.PhoneticFirstName,
+				EnumSet.of(PropertyDefinitionFlags.CanFind),
+				ExchangeVersion.Exchange2010_SP1);
+	
+	/*** Defines PhoneticLastName Property ***/
+	
+	public static final PropertyDefinition PhoneticLastName = 
+		new StringPropertyDefinition(
+				XmlElementNames.PhoneticLastName,
+				FieldUris.PhoneticLastName,
+				EnumSet.of(PropertyDefinitionFlags.CanFind),
+				ExchangeVersion.Exchange2010_SP1);
+	
+	/*** Defines the Alias Property  ***/
+	
+	public static final PropertyDefinition Alias = 
+		new StringPropertyDefinition(
+				XmlElementNames.Alias,
+				FieldUris.Alias,
+				EnumSet.of(PropertyDefinitionFlags.CanFind),
+				ExchangeVersion.Exchange2010_SP1);
+	
+	
+	/*** Defines the Notes Property ***/
+	
+	public static final PropertyDefinition Notes = 
+		new StringPropertyDefinition(
+				XmlElementNames.Notes,
+				FieldUris.Notes,
+				EnumSet.of(PropertyDefinitionFlags.CanFind),
+				ExchangeVersion.Exchange2010_SP1);
+	
+	/*** Defines Photo Property   ***/
+	
+	public static final PropertyDefinition Photo = 
+		new ByteArrayPropertyDefinition(
+				XmlElementNames.Photo,
+				FieldUris.Photo,
+				EnumSet.of(PropertyDefinitionFlags.CanFind),
+				ExchangeVersion.Exchange2010_SP1);
+	
+	/*** Defines UserSMIMECertificate Property ***/
+	
+	public static final PropertyDefinition UserSMIMECertificate = 
+		new ComplexPropertyDefinition<ByteArrayArray>(
+				ByteArrayArray.class,
+				XmlElementNames.UserSMIMECertificate,
+				FieldUris.UserSMIMECertificate,
+				EnumSet.of(PropertyDefinitionFlags.CanFind),
+				ExchangeVersion.Exchange2010_SP1,
+				new ICreateComplexPropertyDelegate<ByteArrayArray>() {
+					@Override
+					public ByteArrayArray createComplexProperty() {
+						return new ByteArrayArray();
+					}
+				});
+	
+	/*** Defines MSExchangeCertificate Property ***/
+	 
+	public static   PropertyDefinition MSExchangeCertificate =
+        new ComplexPropertyDefinition<ByteArrayArray>(
+        		ByteArrayArray.class,
+            XmlElementNames.MSExchangeCertificate,
+            FieldUris.MSExchangeCertificate, 
+            EnumSet.of(PropertyDefinitionFlags.CanFind),
+            ExchangeVersion.Exchange2010_SP1,
+            new ICreateComplexPropertyDelegate<ByteArrayArray>() {
+            	@Override
+				public ByteArrayArray createComplexProperty() {
+					return new ByteArrayArray();
+				}
+            });
+             
+	
+	/*** Defines DirectoryId Property ***/
+	
+	 public static   PropertyDefinition DirectoryId =
+         new StringPropertyDefinition(
+             XmlElementNames.DirectoryId,
+             FieldUris.DirectoryId,
+            EnumSet.of(PropertyDefinitionFlags.CanFind),
+             ExchangeVersion.Exchange2010_SP1);
+	 
+	 /*** Defines ManagerMailbox Property ***/
+
+	 public static   PropertyDefinition ManagerMailbox =
+         new ContainedPropertyDefinition<EmailAddress>(
+        	EmailAddress.class,
+             XmlElementNames.ManagerMailbox,
+             FieldUris.ManagerMailbox,
+             XmlElementNames.Mailbox,
+             EnumSet.of(PropertyDefinitionFlags.CanFind),
+             ExchangeVersion.Exchange2010_SP1,
+             new ICreateComplexPropertyDelegate<EmailAddress> (){
+             @Override
+				public EmailAddress createComplexProperty() {
+					return new EmailAddress();
+				}
+			});
+	 
+	 /*** Defines DirectReports Property ***/
+	 
+	 public static  PropertyDefinition DirectReports =
+         new ComplexPropertyDefinition<EmailAddressCollection>(
+        		 EmailAddressCollection.class,
+             XmlElementNames.DirectReports,
+             FieldUris.DirectReports,
+             EnumSet.of(PropertyDefinitionFlags.CanFind),
+             ExchangeVersion.Exchange2010_SP1,
+             new ICreateComplexPropertyDelegate<EmailAddressCollection>(){
+             @Override
+             public EmailAddressCollection createComplexProperty() 
+					
+             { return new EmailAddressCollection(); }});
+
+				
+
 
 	/***
 	 * Defines the EmailAddress1 property.
@@ -886,6 +1061,17 @@ public class ContactSchema extends ItemSchema {
 		this.registerProperty(Surname);
 		this.registerProperty(WeddingAnniversary);
 		this.registerProperty(HasPicture);
+		this.registerProperty(PhoneticFullName);
+        this.registerProperty(PhoneticFirstName);
+        this.registerProperty(PhoneticLastName);
+        this.registerProperty(Alias);
+        this.registerProperty(Notes);
+        this.registerProperty(Photo);
+        this.registerProperty(UserSMIMECertificate);
+        this.registerProperty(MSExchangeCertificate);
+        this.registerProperty(DirectoryId);
+        this.registerProperty(ManagerMailbox);
+        this.registerProperty(DirectReports);
 		
 		this.registerIndexedProperty(EmailAddress1);
         this.registerIndexedProperty(EmailAddress2);
@@ -927,6 +1113,7 @@ public class ContactSchema extends ItemSchema {
         this.registerIndexedProperty(OtherAddressState);
         this.registerIndexedProperty(OtherAddressCountryOrRegion);
         this.registerIndexedProperty(OtherAddressPostalCode);
+        
 	}
 
 	/**
